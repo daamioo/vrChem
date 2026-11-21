@@ -1,0 +1,498 @@
+{
+ "furniture": [
+  {
+   "id": "main_bench",
+   "class": "Table",
+   "size": [
+    2.4,
+    0.05,
+    0.8
+   ],
+   "position": [
+    0,
+    0.9,
+    -1.5
+   ]
+  },
+  {
+   "id": "left_bench",
+   "class": "Table",
+   "size": [
+    0.8,
+    0.05,
+    2.0
+   ],
+   "position": [
+    -1.6,
+    0.9,
+    -0.8
+   ]
+  },
+  {
+   "id": "right_bench",
+   "class": "Table",
+   "size": [
+    0.8,
+    0.05,
+    2.0
+   ],
+   "position": [
+    1.6,
+    0.9,
+    -0.8
+   ]
+  },
+  {
+   "id": "extinguisher_cabinet",
+   "class": "Table",
+   "size": [
+    0.4,
+    0.04,
+    0.4
+   ],
+   "position": [
+    -2.28,
+    0.9,
+    0.4
+   ]
+  }
+ ],
+ "anchors": {
+  "left_back": {
+   "origin": [
+    -1.8,
+    0.925,
+    -1.65
+   ],
+   "step": [
+    0,
+    0,
+    0.14
+   ]
+  },
+  "left_front": {
+   "origin": [
+    -1.4,
+    0.925,
+    -1.65
+   ],
+   "step": [
+    0,
+    0,
+    0.14
+   ]
+  },
+  "right_back": {
+   "origin": [
+    1.8,
+    0.925,
+    -1.65
+   ],
+   "step": [
+    0,
+    0,
+    0.14
+   ]
+  },
+  "right_front": {
+   "origin": [
+    1.4,
+    0.925,
+    -1.65
+   ],
+   "step": [
+    0,
+    0,
+    0.14
+   ]
+  },
+  "main": {
+   "origin": [
+    -0.9,
+    0.925,
+    -1.5
+   ],
+   "step": [
+    0.2,
+    0,
+    0
+   ]
+  }
+ },
+ "boards": [
+  {
+   "class": "NotebookBoard",
+   "position": [
+    0,
+    1.85,
+    -2.05
+   ],
+   "size": [
+    1.9,
+    1.1
+   ]
+  },
+  {
+   "class": "HelpBoard",
+   "position": [
+    -2.45,
+    1.55,
+    -0.9
+   ],
+   "rotationY": 90,
+   "size": [
+    1.4,
+    0.9
+   ]
+  },
+  {
+   "class": "Whiteboard",
+   "position": [
+    0,
+    1.55,
+    2.18
+   ],
+   "rotationY": 180,
+   "size": [
+    2.4,
+    1.2
+   ]
+  }
+ ],
+ "items": [
+  {
+   "equipment": "scale",
+   "position": [
+    -0.45,
+    0.925,
+    -1.55
+   ]
+  },
+  {
+   "equipment": "hot_plate",
+   "position": [
+    0.45,
+    0.925,
+    -1.55
+   ]
+  },
+  {
+   "equipment": "waste_bin",
+   "position": [
+    0.95,
+    0,
+    -1.0
+   ]
+  },
+  {
+   "equipment": "recycle_crate",
+   "position": [
+    0.95,
+    0,
+    -0.3
+   ]
+  },
+  {
+   "equipment": "beaker",
+   "anchor": "main",
+   "slot": 0,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "beaker",
+   "anchor": "main",
+   "slot": 1,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "beaker_small",
+   "anchor": "main",
+   "slot": 2,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "flask",
+   "anchor": "main",
+   "slot": 3,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "test_tube",
+   "anchor": "main",
+   "slot": 4,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "test_tube",
+   "anchor": "main",
+   "slot": 4.5,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "stir_rod",
+   "anchor": "main",
+   "slot": 7,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "thermometer",
+   "anchor": "main",
+   "slot": 8,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "baking_soda",
+   "anchor": "left_back",
+   "slot": 0
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "sodium_chloride",
+   "anchor": "left_back",
+   "slot": 1
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "citric_acid",
+   "anchor": "left_back",
+   "slot": 2
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "sodium_hydroxide",
+   "anchor": "left_back",
+   "slot": 3
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "calcium_carbonate",
+   "anchor": "left_back",
+   "slot": 4
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "magnesium",
+   "anchor": "left_back",
+   "slot": 5
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "iron_filings",
+   "anchor": "left_back",
+   "slot": 6
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "copper_sulfate",
+   "anchor": "left_back",
+   "slot": 7
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "potassium_iodide",
+   "anchor": "left_front",
+   "slot": 0
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "lead_nitrate",
+   "anchor": "left_front",
+   "slot": 1
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "phenolphthalein",
+   "anchor": "left_front",
+   "slot": 2
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "sodium_metal",
+   "anchor": "left_front",
+   "slot": 3
+  },
+  {
+   "equipment": "jar_powder",
+   "chemical": "calcium_chloride",
+   "anchor": "left_front",
+   "slot": 4
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "water",
+   "anchor": "right_back",
+   "slot": 0
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "acetic_acid",
+   "anchor": "right_back",
+   "slot": 1
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "hydrochloric_acid",
+   "anchor": "right_back",
+   "slot": 2
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "hydrogen_peroxide",
+   "anchor": "right_back",
+   "slot": 3
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "dish_soap",
+   "anchor": "right_front",
+   "slot": 0
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "food_dye_red",
+   "anchor": "right_front",
+   "slot": 1
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "water",
+   "anchor": "right_front",
+   "slot": 2
+  },
+  {
+   "equipment": "fire_extinguisher",
+   "position": [
+    -2.28,
+    0.925,
+    0.4
+   ]
+  },
+  {
+   "equipment": "marker_black",
+   "position": [
+    -0.5,
+    0.97,
+    2.12
+   ]
+  },
+  {
+   "equipment": "marker_red",
+   "position": [
+    -0.35,
+    0.97,
+    2.12
+   ]
+  },
+  {
+   "equipment": "marker_blue",
+   "position": [
+    -0.2,
+    0.97,
+    2.12
+   ]
+  },
+  {
+   "equipment": "marker_green",
+   "position": [
+    -0.050000000000000044,
+    0.97,
+    2.12
+   ]
+  },
+  {
+   "equipment": "board_eraser",
+   "position": [
+    0.5,
+    0.97,
+    2.12
+   ]
+  },
+  {
+   "equipment": "bouncy_ball",
+   "position": [
+    0.95,
+    0.97,
+    -1.3
+   ]
+  },
+  {
+   "equipment": "bouncy_ball_blue",
+   "position": [
+    1.07,
+    0.97,
+    -1.38
+   ]
+  }
+ ],
+ "decor": [
+  {
+   "class": "CeilingPipes"
+  },
+  {
+   "class": "GasCylinderRack",
+   "position": [
+    2.1,
+    0,
+    1.85
+   ],
+   "cylinders": [
+    {
+     "gas": "carbon_dioxide",
+     "color": "#7d868f"
+    },
+    {
+     "gas": "hydrogen",
+     "color": "#d23a2f",
+     "hazard": "ŁATWOPALNY"
+    },
+    {
+     "gas": "oxygen",
+     "color": "#dfe3e8",
+     "hazard": "UTLENIAJĄCY"
+    }
+   ]
+  },
+  {
+   "class": "EyewashStation",
+   "position": [
+    -2.49,
+    0,
+    1.6
+   ],
+   "rotationY": 90
+  }
+ ]
+}

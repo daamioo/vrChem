@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorium chemiczne VR</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2230; font-family: system-ui, sans-serif; }
+    canvas { display: block; }
+    #status { position: fixed; inset: 0; display: grid; place-items: center; color: #e5e7eb; font-size: 18px; white-space: pre-wrap; text-align: center; padding: 24px; }
+    #status[hidden] { display: none; }
+    #status { pointer-events: none; }
+    #status.error { color: #fecaca; }
+    #hint { position: fixed; left: 12px; bottom: 12px; color: #cbd5e1; font-size: 12px; background: rgba(15,23,42,.6); padding: 6px 10px; border-radius: 8px; pointer-events: none; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+</head>
+<body>
+  <div id="status">Ładowanie…</div>
+  <div id="hint">Tryb testowy na PC: prawy przycisk – rozglądanie · WASD – ruch · lewy klik – chwyć · kółko – głębokość · Q/E – przechył · Spacja – spust</div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

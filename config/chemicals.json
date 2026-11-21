@@ -1,0 +1,286 @@
+{
+  "water": {
+    "name": "Woda",
+    "formula": "H2O",
+    "molarMass": 18.015,
+    "state": "liquid",
+    "density": 1.0,
+    "color": "#9fd4ff",
+    "alpha": 0.35,
+    "tintPower": 0.0
+  },
+  "acetic_acid": {
+    "name": "Ocet (kwas octowy)",
+    "formula": "CH3COOH",
+    "molarMass": 60.052,
+    "state": "liquid",
+    "density": 1.05,
+    "color": "#e9e2c0",
+    "alpha": 0.4,
+    "boilingPoint": 118,
+    "hazard": "mild"
+  },
+  "hydrochloric_acid": {
+    "name": "Kwas solny",
+    "formula": "HCl",
+    "molarMass": 36.461,
+    "state": "liquid",
+    "density": 1.18,
+    "color": "#e8f2a0",
+    "alpha": 0.45,
+    "boilingPoint": 85,
+    "hazard": "corrosive"
+  },
+  "hydrogen_peroxide": {
+    "name": "Woda utleniona (nadtlenek wodoru)",
+    "formula": "H2O2",
+    "molarMass": 34.015,
+    "state": "liquid",
+    "density": 1.11,
+    "color": "#d8f0ff",
+    "alpha": 0.35,
+    "boilingPoint": 150,
+    "hazard": "oxidizer"
+  },
+  "dish_soap": {
+    "name": "Płyn do naczyń",
+    "formula": "surfactant",
+    "molarMass": 288.0,
+    "state": "liquid",
+    "density": 1.03,
+    "color": "#69e0a0",
+    "alpha": 0.6,
+    "tintPower": 0.5
+  },
+  "food_dye_red": {
+    "name": "Czerwony barwnik spożywczy",
+    "formula": "dye",
+    "molarMass": 496.4,
+    "state": "liquid",
+    "density": 1.02,
+    "color": "#e01030",
+    "alpha": 0.9,
+    "tintPower": 40
+  },
+  "sodium_chloride": {
+    "name": "Sól kuchenna",
+    "formula": "NaCl",
+    "molarMass": 58.44,
+    "state": "solid",
+    "density": 2.16,
+    "color": "#f4f4f4",
+    "solubility": 36,
+    "tintPower": 0
+  },
+  "baking_soda": {
+    "name": "Soda oczyszczona",
+    "formula": "NaHCO3",
+    "molarMass": 84.007,
+    "state": "solid",
+    "density": 2.2,
+    "color": "#fafaf5",
+    "solubility": 9,
+    "tintPower": 0
+  },
+  "citric_acid": {
+    "name": "Kwas cytrynowy",
+    "formula": "C6H8O7",
+    "molarMass": 192.12,
+    "state": "solid",
+    "density": 1.66,
+    "color": "#fffbe6",
+    "solubility": 59,
+    "tintPower": 0
+  },
+  "sodium_hydroxide": {
+    "name": "Wodorotlenek sodu",
+    "formula": "NaOH",
+    "molarMass": 40.0,
+    "state": "solid",
+    "density": 2.13,
+    "color": "#eef2f8",
+    "solubility": 111,
+    "tintPower": 0,
+    "hazard": "corrosive"
+  },
+  "calcium_carbonate": {
+    "name": "Kreda (węglan wapnia)",
+    "formula": "CaCO3",
+    "molarMass": 100.087,
+    "state": "solid",
+    "density": 2.71,
+    "color": "#f0ece2",
+    "solubility": 0
+  },
+  "calcium_chloride": {
+    "name": "Chlorek wapnia",
+    "formula": "CaCl2",
+    "molarMass": 110.98,
+    "state": "solid",
+    "density": 2.15,
+    "color": "#f2f2f2",
+    "solubility": 75,
+    "tintPower": 0
+  },
+  "magnesium": {
+    "name": "Wióry magnezu",
+    "formula": "Mg",
+    "molarMass": 24.305,
+    "state": "solid",
+    "density": 1.74,
+    "color": "#b9bcc4",
+    "solubility": 0,
+    "hazard": "flammable"
+  },
+  "magnesium_chloride": {
+    "name": "Chlorek magnezu",
+    "formula": "MgCl2",
+    "molarMass": 95.211,
+    "state": "solid",
+    "density": 2.32,
+    "color": "#f2f2f2",
+    "solubility": 54,
+    "tintPower": 0
+  },
+  "iron_filings": {
+    "name": "Opiłki żelaza",
+    "formula": "Fe",
+    "molarMass": 55.845,
+    "state": "solid",
+    "density": 7.87,
+    "color": "#4a4a50",
+    "solubility": 0
+  },
+  "iron_sulfate": {
+    "name": "Siarczan żelaza(II)",
+    "formula": "FeSO4",
+    "molarMass": 151.91,
+    "state": "solid",
+    "density": 3.65,
+    "color": "#9ccf9a",
+    "solubility": 26,
+    "tintPower": 1.5
+  },
+  "copper": {
+    "name": "Miedź",
+    "formula": "Cu",
+    "molarMass": 63.546,
+    "state": "solid",
+    "density": 8.96,
+    "color": "#c8643a",
+    "solubility": 0
+  },
+  "copper_sulfate": {
+    "name": "Siarczan miedzi(II)",
+    "formula": "CuSO4",
+    "molarMass": 159.61,
+    "state": "solid",
+    "density": 3.6,
+    "color": "#2f7bff",
+    "solubility": 20,
+    "tintPower": 3.5,
+    "alpha": 0.8
+  },
+  "potassium_iodide": {
+    "name": "Jodek potasu",
+    "formula": "KI",
+    "molarMass": 166.0,
+    "state": "solid",
+    "density": 3.12,
+    "color": "#f6f6f2",
+    "solubility": 144,
+    "tintPower": 0
+  },
+  "lead_nitrate": {
+    "name": "Azotan ołowiu(II)",
+    "formula": "Pb(NO3)2",
+    "molarMass": 331.2,
+    "state": "solid",
+    "density": 4.53,
+    "color": "#f4f4f4",
+    "solubility": 52,
+    "tintPower": 0,
+    "hazard": "toxic"
+  },
+  "lead_iodide": {
+    "name": "Jodek ołowiu(II)",
+    "formula": "PbI2",
+    "molarMass": 461.0,
+    "state": "solid",
+    "density": 6.16,
+    "color": "#ffd21a",
+    "solubility": 0.1
+  },
+  "potassium_nitrate": {
+    "name": "Azotan potasu",
+    "formula": "KNO3",
+    "molarMass": 101.1,
+    "state": "solid",
+    "density": 2.11,
+    "color": "#f4f4f4",
+    "solubility": 32,
+    "tintPower": 0
+  },
+  "sodium_acetate": {
+    "name": "Octan sodu",
+    "formula": "CH3COONa",
+    "molarMass": 82.034,
+    "state": "solid",
+    "density": 1.53,
+    "color": "#f4f4f0",
+    "solubility": 46,
+    "tintPower": 0
+  },
+  "sodium_metal": {
+    "name": "Sód metaliczny",
+    "formula": "Na",
+    "molarMass": 22.99,
+    "state": "solid",
+    "density": 0.97,
+    "color": "#c9ccd2",
+    "solubility": 0,
+    "hazard": "reactive"
+  },
+  "phenolphthalein": {
+    "name": "Fenoloftaleina",
+    "formula": "C20H14O4",
+    "molarMass": 318.33,
+    "state": "solid",
+    "density": 1.3,
+    "color": "#f4f4f4",
+    "solubility": 0.3,
+    "tintPower": 0
+  },
+  "phenolphthalein_pink": {
+    "name": "Fenoloftaleina (forma zasadowa)",
+    "formula": "Na2[PP]",
+    "molarMass": 362.3,
+    "state": "solid",
+    "density": 1.3,
+    "color": "#ff2a9e",
+    "solubility": 60,
+    "tintPower": 60,
+    "alpha": 0.9
+  },
+  "carbon_dioxide": {
+    "name": "Dwutlenek węgla",
+    "formula": "CO2",
+    "molarMass": 44.01,
+    "state": "gas",
+    "color": "#dfe6ee"
+  },
+  "hydrogen": {
+    "name": "Wodór",
+    "formula": "H2",
+    "molarMass": 2.016,
+    "state": "gas",
+    "color": "#ffffff"
+  },
+  "oxygen": {
+    "name": "Tlen",
+    "formula": "O2",
+    "molarMass": 31.998,
+    "state": "gas",
+    "color": "#dceeff"
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "beaker": {
+    "class": "Beaker",
+    "displayName": "Zlewka",
+    "massG": 110,
+    "wall": 0.003,
+    "glassColor": "#cfe8ff",
+    "profile": [[0, 0], [0.045, 0], [0.045, 0.11]],
+    "marks": 5
+  },
+  "beaker_small": {
+    "class": "Beaker",
+    "displayName": "Mała zlewka",
+    "massG": 55,
+    "wall": 0.0025,
+    "glassColor": "#cfe8ff",
+    "profile": [[0, 0], [0.032, 0], [0.032, 0.08]],
+    "marks": 4
+  },
+  "flask": {
+    "class": "Flask",
+    "displayName": "Kolba stożkowa",
+    "massG": 95,
+    "wall": 0.003,
+    "glassColor": "#d6ecff",
+    "profile": [[0, 0], [0.055, 0], [0.05, 0.035], [0.038, 0.085], [0.02, 0.125], [0.018, 0.17], [0.022, 0.175]]
+  },
+  "test_tube": {
+    "class": "TestTube",
+    "displayName": "Probówka",
+    "massG": 14,
+    "wall": 0.0018,
+    "glassColor": "#e2f1ff",
+    "profile": [[0, 0], [0.007, 0.001], [0.011, 0.005], [0.0135, 0.012], [0.015, 0.02], [0.015, 0.13]]
+  },
+  "jar_powder": {
+    "class": "ReagentBottle",
+    "displayName": "Słoik na proszek",
+    "massG": 90,
+    "wall": 0.003,
+    "glassColor": "#d8c8a8",
+    "fillMl": 320,
+    "profile": [[0, 0], [0.04, 0], [0.04, 0.095], [0.028, 0.115], [0.028, 0.13]]
+  },
+  "bottle_liquid": {
+    "class": "ReagentBottle",
+    "displayName": "Butelka na ciecz",
+    "massG": 80,
+    "wall": 0.003,
+    "glassColor": "#b8d6a8",
+    "fillMl": 300,
+    "profile": [[0, 0], [0.036, 0], [0.036, 0.09], [0.02, 0.125], [0.016, 0.15], [0.019, 0.155]]
+  },
+  "stir_rod": {
+    "class": "StirRod",
+    "displayName": "Bagietka",
+    "massG": 20,
+    "length": 0.28,
+    "radius": 0.005,
+    "color": "#e8f4ff"
+  },
+  "thermometer": {
+    "class": "Thermometer",
+    "displayName": "Termometr",
+    "massG": 15,
+    "length": 0.26,
+    "radius": 0.006,
+    "color": "#ffffff"
+  },
+  "scale": {
+    "class": "Scale",
+    "displayName": "Waga laboratoryjna",
+    "size": [0.26, 0.04, 0.3],
+    "padRadius": 0.1,
+    "color": "#e8ebef"
+  },
+  "hot_plate": {
+    "class": "HeatPlate",
+    "displayName": "Płyta grzejna",
+    "size": [0.3, 0.06, 0.3],
+    "plateRadius": 0.12,
+    "color": "#2b2d33"
+  },
+  "waste_bin": {
+    "class": "WasteBin",
+    "displayName": "Kosz na odpady",
+    "radius": 0.13,
+    "height": 0.28,
+    "color": "#3e6b4a"
+  },
+  "recycle_crate": {
+    "class": "ResetCrate",
+    "displayName": "Skrzynia odnawiania",
+    "radius": 0.2,
+    "height": 0.25,
+    "color": "#2563eb"
+  },
+  "fire_extinguisher": {
+    "class": "FireExtinguisher",
+    "displayName": "Gaśnica",
+    "massG": 2500,
+    "sprayDurationS": 12,
+    "rechargePerS": 0.08
+  },
+  "marker_black": {
+    "class": "Marker",
+    "displayName": "Czarny marker",
+    "massG": 18,
+    "length": 0.14,
+    "radius": 0.011,
+    "color": "#f4f4f2",
+    "markerColor": "#111111"
+  },
+  "marker_red": {
+    "class": "Marker",
+    "displayName": "Czerwony marker",
+    "massG": 18,
+    "length": 0.14,
+    "radius": 0.011,
+    "color": "#f4f4f2",
+    "markerColor": "#d62828"
+  },
+  "marker_blue": {
+    "class": "Marker",
+    "displayName": "Niebieski marker",
+    "massG": 18,
+    "length": 0.14,
+    "radius": 0.011,
+    "color": "#f4f4f2",
+    "markerColor": "#1d4ed8"
+  },
+  "marker_green": {
+    "class": "Marker",
+    "displayName": "Zielony marker",
+    "massG": 18,
+    "length": 0.14,
+    "radius": 0.011,
+    "color": "#f4f4f2",
+    "markerColor": "#15803d"
+  },
+  "board_eraser": {
+    "class": "Eraser",
+    "displayName": "Magnetyczna gąbka do tablicy",
+    "massG": 120
+  },
+  "bouncy_ball": {
+    "class": "BouncyBall",
+    "displayName": "Piłka kauczukowa",
+    "massG": 40,
+    "radius": 0.035,
+    "color": "#ef4444",
+    "stripeColor": "#fde047",
+    "restitution": 0.78
+  },
+  "bouncy_ball_blue": {
+    "class": "BouncyBall",
+    "displayName": "Niebieska piłka kauczukowa",
+    "massG": 40,
+    "radius": 0.03,
+    "color": "#2563eb",
+    "stripeColor": "#f8fafc",
+    "restitution": 0.82
+  }
+}

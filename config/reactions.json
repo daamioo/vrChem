@@ -1,0 +1,377 @@
+{
+  "baking_soda_vinegar": {
+    "name": "Musujący wulkan",
+    "hint": "Białą sodę z kuchni zalej octem i patrz na bąbelki.",
+    "reactants": {
+      "baking_soda": 1,
+      "acetic_acid": 1
+    },
+    "products": {
+      "sodium_acetate": 1,
+      "water": 1,
+      "carbon_dioxide": 1
+    },
+    "speed": 0.9,
+    "enthalpy": 20,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Wydziela się dwutlenek węgla!",
+    "effects": [
+      {
+        "type": "bubbles",
+        "refRate": 0.05,
+        "color": "#ffffff"
+      },
+      {
+        "type": "foam",
+        "mode": "burst",
+        "minMoles": 0.03,
+        "color": "#f5f5ff"
+      },
+      {
+        "type": "sound",
+        "sound": "fizz",
+        "refRate": 0.05
+      }
+    ]
+  },
+  "baking_soda_hcl": {
+    "name": "Gwałtowne musowanie",
+    "hint": "Spróbuj sody oczyszczonej z czymś znacznie mocniejszym niż ocet.",
+    "reactants": {
+      "baking_soda": 1,
+      "hydrochloric_acid": 1
+    },
+    "products": {
+      "sodium_chloride": 1,
+      "water": 1,
+      "carbon_dioxide": 1
+    },
+    "speed": 1.6,
+    "enthalpy": 12,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Z mieszaniny wydobywa się CO₂.",
+    "effects": [
+      {
+        "type": "bubbles",
+        "refRate": 0.08,
+        "color": "#ffffff"
+      },
+      {
+        "type": "foam",
+        "mode": "burst",
+        "minMoles": 0.04,
+        "color": "#f5f5ff"
+      },
+      {
+        "type": "sound",
+        "sound": "fizz",
+        "refRate": 0.08
+      }
+    ]
+  },
+  "neutralization": {
+    "name": "Neutralizacja kwasu zasadą",
+    "hint": "Rozpuść zasadę w wodzie i dolej kwasu solnego. Zlewka się ogrzeje.",
+    "reactants": {
+      "sodium_hydroxide": 1,
+      "hydrochloric_acid": 1
+    },
+    "products": {
+      "sodium_chloride": 1,
+      "water": 1
+    },
+    "speed": 1.2,
+    "enthalpy": -57,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Neutralizacja wydziela ciepło.",
+    "effects": [
+      {
+        "type": "smoke",
+        "refRate": 0.05,
+        "color": "#ffffff",
+        "requiresHot": 40
+      },
+      {
+        "type": "sound",
+        "sound": "hiss",
+        "refRate": 0.05
+      }
+    ]
+  },
+  "chalk_acid": {
+    "name": "Rozpuszczanie kredy",
+    "hint": "Kreda i mocny kwas: patrz, jak proszek znika wśród bąbelków.",
+    "reactants": {
+      "calcium_carbonate": 1,
+      "hydrochloric_acid": 2
+    },
+    "products": {
+      "calcium_chloride": 1,
+      "water": 1,
+      "carbon_dioxide": 1
+    },
+    "speed": 0.5,
+    "enthalpy": -15,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Kreda się rozpuszcza, wydzielając CO₂.",
+    "effects": [
+      {
+        "type": "bubbles",
+        "refRate": 0.04,
+        "color": "#ffffff"
+      },
+      {
+        "type": "sound",
+        "sound": "fizz",
+        "refRate": 0.05
+      }
+    ]
+  },
+  "magnesium_acid": {
+    "name": "Fajerwerki z magnezu",
+    "hint": "Wrzuć wióry magnezu do kwasu solnego. Uważaj na ciepło i gaz.",
+    "reactants": {
+      "magnesium": 1,
+      "hydrochloric_acid": 2
+    },
+    "products": {
+      "magnesium_chloride": 1,
+      "hydrogen": 1
+    },
+    "speed": 0.8,
+    "enthalpy": -467,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Wydziela się wodór, a zlewka się nagrzewa!",
+    "effects": [
+      {
+        "type": "bubbles",
+        "refRate": 0.03,
+        "color": "#ffffff"
+      },
+      {
+        "type": "smoke",
+        "refRate": 0.05,
+        "color": "#ffffff",
+        "requiresHot": 55
+      },
+      {
+        "type": "sound",
+        "sound": "fizz",
+        "refRate": 0.04
+      }
+    ]
+  },
+  "iron_copper_displacement": {
+    "name": "Miedziowanie",
+    "hint": "Rozpuść siarczan miedzi w wodzie i wsyp do niego opiłki żelaza.",
+    "reactants": {
+      "iron_filings": 1,
+      "copper_sulfate": 1
+    },
+    "products": {
+      "iron_sulfate": 1,
+      "copper": 1
+    },
+    "speed": 0.15,
+    "enthalpy": -153,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Żelazo wypiera miedź. Niebieski kolor blednie!",
+    "effects": [
+      {
+        "type": "sound",
+        "sound": "tick",
+        "refRate": 0.02
+      }
+    ]
+  },
+  "golden_rain": {
+    "name": "Złoty deszcz",
+    "hint": "Rozpuść w wodzie jodek potasu i azotan ołowiu. Powstanie żółty osad.",
+    "reactants": {
+      "lead_nitrate": 1,
+      "potassium_iodide": 2
+    },
+    "products": {
+      "lead_iodide": 1,
+      "potassium_nitrate": 2
+    },
+    "speed": 1.8,
+    "enthalpy": -5,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Powstaje jaskrawożółty osad!",
+    "effects": [
+      {
+        "type": "sparkle",
+        "refRate": 0.03,
+        "color": "#ffd21a"
+      },
+      {
+        "type": "sound",
+        "sound": "ding",
+        "mode": "burst",
+        "minMoles": 0.01
+      }
+    ]
+  },
+  "elephant_toothpaste": {
+    "name": "Pasta do zębów dla słonia",
+    "hint": "Do wody utlenionej dodaj jodek potasu. Płyn do naczyń zamieni gaz w pianę.",
+    "reactants": {
+      "hydrogen_peroxide": 2
+    },
+    "catalysts": {
+      "potassium_iodide": 0.2
+    },
+    "products": {
+      "water": 2,
+      "oxygen": 1
+    },
+    "speed": 1.3,
+    "enthalpy": -98,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Nadtlenek gwałtownie rozkłada się na tlen!",
+    "effects": [
+      {
+        "type": "bubbles",
+        "refRate": 0.1,
+        "color": "#ffffff"
+      },
+      {
+        "type": "foam",
+        "refRate": 0.05,
+        "requires": [
+          "dish_soap"
+        ],
+        "continuous": true,
+        "color": "#ffffff",
+        "tintFromLiquid": true
+      },
+      {
+        "type": "smoke",
+        "refRate": 0.08,
+        "color": "#ffffff",
+        "requiresHot": 45
+      },
+      {
+        "type": "sound",
+        "sound": "hiss",
+        "refRate": 0.08
+      }
+    ]
+  },
+  "sodium_water": {
+    "name": "Sód spotyka wodę",
+    "hint": "Wrzuć kawałek sodu do wody i odsuń się od zlewki.",
+    "reactants": {
+      "sodium_metal": 2,
+      "water": 2
+    },
+    "products": {
+      "sodium_hydroxide": 2,
+      "hydrogen": 1
+    },
+    "speed": 2.5,
+    "enthalpy": -368,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Gwałtowna reakcja! Wodór się zapala!",
+    "effects": [
+      {
+        "type": "sparkle",
+        "refRate": 0.05,
+        "color": "#ffb347"
+      },
+      {
+        "type": "flash",
+        "mode": "burst",
+        "minMoles": 0.01,
+        "color": "#ffcf70"
+      },
+      {
+        "type": "explosion",
+        "mode": "burst",
+        "minMoles": 0.06,
+        "power": 1
+      },
+      {
+        "type": "smoke",
+        "refRate": 0.1,
+        "color": "#d8d8d8"
+      },
+      {
+        "type": "sound",
+        "sound": "hiss",
+        "refRate": 0.1
+      }
+    ]
+  },
+  "indicator_base": {
+    "name": "Wskaźnik różowieje",
+    "hint": "Rozpuść w wodzie wodorotlenek sodu, a potem dodaj trochę fenoloftaleiny.",
+    "reactants": {
+      "phenolphthalein": 1,
+      "sodium_hydroxide": 2
+    },
+    "products": {
+      "phenolphthalein_pink": 1,
+      "water": 2
+    },
+    "speed": 2.0,
+    "enthalpy": 0,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Roztwór robi się różowy: to zasada!",
+    "effects": [
+      {
+        "type": "sound",
+        "sound": "ding",
+        "mode": "burst",
+        "minMoles": 0.0002
+      }
+    ]
+  },
+  "indicator_acid": {
+    "name": "Wskaźnik blednie",
+    "hint": "Do różowego roztworu dolej kwasu solnego i obserwuj kolor.",
+    "reactants": {
+      "phenolphthalein_pink": 1,
+      "hydrochloric_acid": 2
+    },
+    "products": {
+      "phenolphthalein": 1,
+      "sodium_chloride": 2
+    },
+    "speed": 2.0,
+    "enthalpy": 0,
+    "conditions": {
+      "requiresLiquid": true
+    },
+    "message": "Róż znika: roztwór znów jest kwaśny.",
+    "effects": [
+      {
+        "type": "sound",
+        "sound": "ding",
+        "mode": "burst",
+        "minMoles": 0.0002
+      }
+    ]
+  }
+}

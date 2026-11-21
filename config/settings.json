@@ -1,0 +1,25 @@
+{
+  "ambientTemperatureC": 22,
+  "gravity": 9.81,
+  "room": { "width": 5.0, "depth": 4.4, "height": 3.0 },
+  "player": { "start": [0, 0, -0.5], "moveSpeed": 1.6, "snapTurnDegrees": 30, "grabMove": true },
+  "interaction": { "grabReach": 0.09, "touchRadius": 0.03 },
+  "pouring": {
+    "liquidMlPerSecondPerCm": 18,
+    "maxLiquidMlPerSecond": 90,
+    "powderGramsPerSecondPerCm": 3,
+    "maxPowderGramsPerSecond": 12,
+    "streamRadius": 0.004
+  },
+  "thermal": {
+    "heatCapacityJPerGK": 4.18,
+    "heatingTimeConstantPerG": 0.12,
+    "coolingTimeConstantS": 240,
+    "plateTimeConstantS": 20,
+    "plateMaxC": 250,
+    "plateStepC": 25
+  },
+  "knock": { "tipSpeed": 0.35 },
+  "breakage": { "impactSpeed": 2.6, "respawnS": 4 },
+  "autoRefillBottles": true
+}

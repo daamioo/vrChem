@@ -1,0 +1,14 @@
+{
+  "name": "vr-chemistry-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Config-driven interactive chemistry lab for Meta Quest (WebXR / Three.js)",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "start:https": "node tools/serve.mjs --https",
+    "cert": "mkdir -p certs && openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj /CN=quest-dev -keyout certs/key.pem -out certs/cert.pem",
+    "test": "node --test test/chemistry.test.mjs",
+    "validate": "node tools/validate-config.mjs"
+  }
+}

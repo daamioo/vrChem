@@ -1,0 +1,19 @@
+/** Minimal publish/subscribe bus used to decouple systems (chemistry, UI, effects, audio). */
+export class EventBus {
+  constructor() { this._handlers = new Map(); }
+
+  /** @returns {Function} unsubscribe function */
+  on(event, handler) {
+    if (!this._handlers.has(event)) this._handlers.set(event, new Set());
+    this._handlers.get(event).add(handler);
+    return () => this.off(event, handler);
+  }
+
+  off(event, handler) { this._handlers.get(event)?.delete(handler); }
+
+  emit(event, payload) {
+    const set = this._handlers.get(event);
+    if (!set) return;
+    for (const h of [...set]) h(payload);
+  }
+}
