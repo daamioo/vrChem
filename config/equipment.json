@@ -225,8 +225,13 @@
   "radio": {
     "class": "Radio",
     "displayName": "Radio",
-    "file": "audio/radio.mp3",
+    "startFreq": 92.5,
     "startVolume": 5,
-    "color": "#8a5a3c"
+    "color": "#8a5a3c",
+    "stations": [
+      { "freq": 92.5, "name": "Chemia FM", "file": "audio/radio.mp3" },
+      { "freq": 99.0, "name": "Lounge FM", "generator": "lounge" },
+      { "freq": 104.5, "name": "Stacja 3", "file": "audio/station3.mp3" }
+    ]
   }
 }
