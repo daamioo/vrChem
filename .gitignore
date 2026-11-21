@@ -1,10 +1,6 @@
 # local HTTPS certificate + private key (npm run cert)
 certs/
 # music for the radio: copyrighted tracks, kept out of the repo
-audio/*.mp3
-audio/*.ogg
-audio/*.m4a
-audio/*.wav
 # downloaded source videos
 *.mp4
 *.webm
