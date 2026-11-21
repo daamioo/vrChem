@@ -1,0 +1,57 @@
+# Runs the checks on every push / pull request; on main it then publishes the lab to GitHub Pages.
+# No build step: the site is index.html + src/ + config/ + vendor/ served as static files
+# (GitHub Pages is HTTPS, which WebXR needs).
+name: Test and deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: |
+          for f in $(find src tools test -name '*.js' -o -name '*.mjs'); do node --check "$f"; done
+      - name: Validate config
+        run: npm run validate
+      - name: Unit tests
+        run: npm test
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the site
+        run: |
+          mkdir _site
+          cp -r index.html src config vendor _site/
+          if [ -d audio ]; then cp -r audio _site/; fi
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

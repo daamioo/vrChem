@@ -4,6 +4,9 @@ An interactive chemistry lab: grab beakers, flasks and test tubes, pour powders 
 weigh on a scale, heat on a hot plate, stir, and discover reactions. Runs in the Quest Browser
 (Three.js + WebXR, no build step).
 
+## Play online
+**https://daamioo.github.io/vrChem/** — open it in the Quest Browser and press **Enter VR** (or use it on a PC in desktop test mode). It's deployed by GitHub Actions on every push to `main` (`.github/workflows/pages.yml` runs the syntax check, config validation and unit tests first). The radio's music files aren't in the repository, so online only the generated Lounge FM station plays; the other two stations are static.
+
 ## Run
 ```
 npm start                      # http://localhost:8000
