@@ -26,7 +26,7 @@ export class InteractionSystem {
       if (gripDown) this.tryGrab(hand);
       else if (gripUp) this.release(hand);
 
-      if (hand.held) this.follow(hand);
+      if (hand.held) this.follow(hand, dt);
       else if (hand.airGrab) hand.setHighlight('move');
       else if (!hand.heldControl) {
         hand.nearest = this.findNearest(hand) ?? this.findNearestControl(hand);
@@ -103,20 +103,22 @@ export class InteractionSystem {
     this.world.bus.emit('release', { hand, object: obj });
   }
 
-  follow(hand) {
+  follow(hand, dt = 1 / 72) {
     const obj = hand.held;
     this._m.multiplyMatrices(hand.matrixWorld, hand.grabOffset);
     this._m.decompose(obj.object3D.position, obj.object3D.quaternion, this._s);
     obj.object3D.updateMatrixWorld(true);
-    this._keepOutOfSolids(hand, obj);
+    this._keepOutOfSolids(hand, obj, dt);
   }
 
   /**
    * A held object coming down onto a bench (or the hot plate / scale) stops on its top: the hand
-   * can go on through, the object stays put. Hitting it fast counts as an impact (glass breaks).
+   * can go on through, the object stays put. Coming down on it fast counts as an impact (glass
+   * breaks) — measured by how fast the object's lowest point was dropping, so sliding or tilting
+   * something along the top doesn't.
    * Reaching in from below or the side isn't blocked; the object pops out when let go.
    */
-  _keepOutOfSolids(hand, obj) {
+  _keepOutOfSolids(hand, obj, dt) {
     if (!obj.lowestPoint) return;
     const low = obj.lowestPoint(this._low ??= new THREE.Vector3());
     const prev = obj._prevLowY ?? low.y;
@@ -129,7 +131,7 @@ export class InteractionSystem {
       obj.object3D.position.y += hit.top - low.y;
       obj.object3D.updateMatrixWorld(true);
       if (!obj._pressed) {
-        const speed = hand.velocity.length();
+        const speed = Math.max(0, prev - low.y) / Math.max(dt, 1e-3);
         if (speed > 0.5) obj.onImpact?.(speed, hit);
         hand.pulse(Math.min(1, 0.3 + speed * 0.3), 30);
       }

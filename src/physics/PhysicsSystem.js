@@ -116,6 +116,23 @@ export class PhysicsSystem {
     });
   }
 
+  /**
+   * A body that just moved (from prevX/prevZ) into the side of a solid (bench cabinet, hot plate
+   * case) is put back and bounces off: the velocity component that took it in is reversed.
+   */
+  _bounceOffSolids(obj, prevX, prevZ, bottomY) {
+    const p = obj.object3D.position, b = obj.body;
+    if (!this.solidAt(p.x, bottomY, p.z) || this.solidAt(prevX, bottomY, prevZ)) return false;
+    const e = Math.min(0.8, b.restitution ?? 0.2);
+    const hitX = !!this.solidAt(p.x, bottomY, prevZ), hitZ = !!this.solidAt(prevX, bottomY, p.z);
+    const speed = Math.hypot(hitX || !hitZ ? b.velocity.x : 0, hitZ || !hitX ? b.velocity.z : 0);
+    if (hitX || !hitZ) b.velocity.x *= -e;
+    if (hitZ || !hitX) b.velocity.z *= -e;
+    p.x = prevX; p.z = prevZ;
+    if (speed > 0.3) obj.onImpact?.(speed, null);
+    return true;
+  }
+
   /** Highest surface whose solid body contains the point, or null. */
   solidAt(x, y, z) {
     let best = null;
@@ -152,25 +169,36 @@ export class PhysicsSystem {
           // Rolling (balls: low friction, spins) or sliding after a knock (high friction).
           b.velocity.y = 0;
           b.velocity.multiplyScalar(Math.exp(-(b.rollRadius ? (b.rollFriction ?? 0.9) : (b.slideFriction ?? 6)) * dt));
+          const px = p.x, pz = p.z;
           p.addScaledVector(b.velocity, dt);
           p.y = b.support.top + b.restHeight;
+          this._bounceOffSolids(obj, px, pz, p.y - b.restHeight + 0.001);   // e.g. a ball rolling into a bench
           if (b.rollRadius) this._roll(obj, dt);
           if (this._walls(obj) && !this.bodies.has(obj)) continue;
           continue;
         } else { p.y = b.support.top + b.restHeight; b.velocity.set(0, 0, 0); continue; }
       }
 
-      const prevY = p.y;
+      const prevY = p.y, prevX = p.x, prevZ = p.z;
       b.velocity.y -= this.gravity * dt;
       p.addScaledVector(b.velocity, dt);
       if (b.rollRadius) this._roll(obj, dt, 0.5);
       if (this._walls(obj) && !this.bodies.has(obj)) continue;
 
-      // Let go inside a bench (or pushed into one)? Pop it out onto the top instead of falling through.
-      const inside = this.solidAt(p.x, p.y - b.restHeight, p.z);
-      if (inside) { p.y = inside.top + b.restHeight; b.support = inside; b.velocity.set(0, 0, 0); obj.onImpact?.(0, inside); continue; }
       const surface = this.surfaceAt(p.x, p.z, prevY - b.restHeight + 0.02);
-      if (surface && p.y - b.restHeight <= surface.top) {
+      const landing = surface && p.y - b.restHeight <= surface.top;
+      if (!landing) {
+        const inside = this.solidAt(p.x, p.y - b.restHeight, p.z);
+        if (inside) {
+          // Already inside it last frame = let go inside a bench: pop out onto the top.
+          // Flew into it from the side (a thrown ball): bounce off the cabinet instead.
+          if (this.solidAt(prevX, prevY - b.restHeight, prevZ) === inside) {
+            p.y = inside.top + b.restHeight; b.support = inside; b.velocity.set(0, 0, 0); obj.onImpact?.(0, inside);
+          } else this._bounceOffSolids(obj, prevX, prevZ, p.y - b.restHeight);
+          continue;
+        }
+      }
+      if (landing) {
         const speed = Math.abs(b.velocity.y);
         p.y = surface.top + b.restHeight;
         if (b.restitution && speed > 0.6) {
