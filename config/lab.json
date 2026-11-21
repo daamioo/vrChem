@@ -656,6 +656,16 @@
    ],
    "rotationY": 0,
    "groundY": -9
+  },
+  {
+   "class": "ResetButton",
+   "position": [
+    -1.75,
+    1.2,
+    2.19
+   ],
+   "rotationY": 180,
+   "holdS": 1
   }
  ],
  "windows": {

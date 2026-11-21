@@ -28,6 +28,9 @@ export class FoamSplats {
     it.mesh.rotateZ(Math.random() * Math.PI);
   }
 
+  /** Wipes every splat (room reset). */
+  clear() { for (const it of this.items) { it.age = Infinity; it.mesh.visible = false; } }
+
   update(dt) {
     for (const it of this.items) {
       if (it.age === Infinity) continue;

@@ -34,6 +34,7 @@ import { Pipette } from './Pipette.js';
 import { Burette } from './Burette.js';
 import { PhChart } from '../ui/PhChart.js';
 import { Radio } from './Radio.js';
+import { ResetButton } from './ResetButton.js';
 import { decorRegistry } from './Decor.js';
 
 /** Maps the `"class"` strings in config files to implementations. Add new equipment types here. */
@@ -45,7 +46,7 @@ export const equipmentRegistry = new Registry('equipment class')
   .register('BunsenBurner', BunsenBurner).register('FlameTestLoop', FlameTestLoop).register('Splint', Splint)
   .register('PhStrip', PhStrip).register('PhStripBox', PhStripBox).register('Pipette', Pipette).register('Burette', Burette).register('Radio', Radio);
 
-decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista);
+decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista).register('ResetButton', ResetButton);
 export const furnitureRegistry = new Registry('furniture class').register('Table', Table);
 export const boardRegistry = new Registry('board class').register('NotebookBoard', NotebookBoard).register('HelpBoard', HelpBoard).register('Whiteboard', Whiteboard).register('PhChart', PhChart);
 
@@ -64,8 +65,39 @@ export class LabFactory {
     w.add(new ReactionEffectSystem(w));
     for (const f of this.lab.furniture ?? []) w.add(furnitureRegistry.create(f.class, w, f));
     for (const b of this.lab.boards ?? []) w.add(boardRegistry.create(b.class, w, b));
-    for (const d of this.lab.decor ?? []) w.add(decorRegistry.create(d.class, w, d));
+    this.decor = [];
+    for (const d of this.lab.decor ?? []) this.decor.push({ def: d, entity: w.add(decorRegistry.create(d.class, w, d)) });
     this.buildItems();
+  }
+
+  /**
+   * Puts the room back the way it started: every item back at its spot with its starting contents
+   * (extra pH strips, broken glass and foam cleared), stations and the gas rack back to off with
+   * valves shut and fires out, the cat back to its own colours. Kept as they are: the room, benches,
+   * wall boards (notebook progress, whiteboard drawing), the view outside, and anything marked
+   * `persistent` (the radio keeps playing, the reset button itself).
+   */
+  resetRoom() {
+    const w = this.world;
+    for (const h of w.input?.hands ?? []) {
+      if (h.heldControl) { h.heldControl.endGrab?.(); h.heldControl = null; }
+      if (h.held) w.input.release(h, false);
+      h.airGrab = false;
+    }
+    w._timers = [];                                   // e.g. pending respawns of broken glass
+    const keptItems = new Set();
+    for (const e of [...w.entities]) {
+      if (e.persistent) { if (e.spawnItem) keptItems.add(e.spawnItem); continue; }
+      if (e.tags.has('labobject') || e.spawnItem !== undefined || e.isDebris) w.remove(e);
+    }
+    for (const d of this.decor) {
+      if (d.entity.persistent || d.def.class === 'FactoryVista' || d.def.class === 'CeilingPipes') continue;
+      w.remove(d.entity);
+      d.entity = w.add(decorRegistry.create(d.def.class, w, d.def));
+    }
+    w.foamSplats?.clear();
+    for (const item of this.lab.items ?? []) if (!keptItems.has(item)) this.spawn(item);
+    w.bus.emit('lab:reset', {});
   }
 
   buildItems() {

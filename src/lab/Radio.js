@@ -17,6 +17,7 @@ export class Radio extends Entity {
   constructor(world, def) {
     super(world);
     this.def = def;
+    this.persistent = true;                       // the room reset leaves it (and the music) alone
     this.file = def.file ?? 'audio/radio.mp3';
     this.volume = def.startVolume ?? 5;          // 0 = off
     this.state = 'idle';                          // idle | loading | ready | missing | error

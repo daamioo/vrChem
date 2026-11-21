@@ -9,6 +9,7 @@ const _axis = new THREE.Vector3();
  * floor / tables, lie there for a while and then fade away. Created by Container.shatter().
  */
 export class GlassShards extends Entity {
+  isDebris = true;   // swept away by the room reset
   /**
    * @param {World} world
    * @param {{origin: THREE.Vector3, color?: string|number, count?: number, size?: number, kick?: THREE.Vector3}} o
