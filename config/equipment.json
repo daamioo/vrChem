@@ -230,8 +230,8 @@
     "color": "#8a5a3c",
     "stations": [
       { "freq": 92.5, "name": "Chemia FM", "file": "audio/radio.mp3" },
-      { "freq": 99.0, "name": "Lounge FM", "generator": "lounge" },
-      { "freq": 104.5, "name": "Stacja 3", "file": "audio/station3.mp3" }
+      { "freq": 99.0, "name": "Portal Radio", "file": "audio/station2.mp3" },
+      { "freq": 104.5, "name": "Lounge FM", "generator": "lounge" }
     ]
   }
 }
