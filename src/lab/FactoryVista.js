@@ -488,19 +488,20 @@ export class FactoryVista extends Entity {
       this.crates.instanceMatrix.needsUpdate = true;
     }
 
-    // flare and welding flicker, neon sign hum
+    // Flare, welding glow and neon sign: slow, smooth changes only (well under 1 Hz, low contrast),
+    // never random per-frame flicker — rapid flashing can trigger photosensitive seizures.
     if (this.flare) {
-      const f = 1 + Math.sin(t * 9) * 0.12 + Math.sin(t * 23.7) * 0.08 + (Math.random() - 0.5) * 0.1;
+      const f = 1 + Math.sin(t * 1.3) * 0.06 + Math.sin(t * 0.7 + 1) * 0.04;
       this.flareOuter.scale.set(1, f, 1);
-      this.flareInner.scale.set(1, f * 0.95, 1);
-      this.flareGlow.material.opacity = 0.7 + (f - 1) * 1.5;
+      this.flareInner.scale.set(1, f * 0.97, 1);
+      this.flareGlow.material.opacity = 0.75 + (f - 1) * 0.8;
       this.flare.rotation.z = Math.sin(t * 0.6) * 0.12;
     }
     if (this.weld) {
-      const on = Math.sin(t * 2.1) > 0.2 && Math.random() > 0.35;
-      this.weld.material.color.setRGB(on ? 0.6 : 0.08, on ? 0.78 : 0.09, on ? 1 : 0.12);
+      // a soft blue work-light glow that slowly swells and fades
+      const k = 0.5 + 0.25 * Math.sin(t * 0.5) + 0.1 * Math.sin(t * 0.23 + 2);
+      this.weld.material.color.setRGB(0.12 + 0.3 * k, 0.16 + 0.38 * k, 0.24 + 0.5 * k);
     }
-    if (this.signMat) this.signMat.color.setScalar(Math.random() < 0.01 ? 0.4 : 1);
 
     // smoke and steam (world-space particles)
     this.object3D.updateMatrixWorld();

@@ -144,7 +144,7 @@ export class GasCylinderRack extends Decor {
     });
     const tip = _h.copy(origin).addScaledVector(dir, len * 0.6);
     this.light.position.copy(this.object3D.worldToLocal(tip.clone()));
-    this.light.intensity = Math.max(this.light.intensity, (1.2 + 1.5 * flow) * flick);
+    this.light.intensity = Math.max(this.light.intensity, (1.2 + 1.5 * flow) * (1 + Math.sin(t * 5) * 0.05));
     w.audio?.play('flame', 0.5 + 0.6 * flow);
 
     // hands in the fire: strong buzz

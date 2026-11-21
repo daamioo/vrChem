@@ -93,7 +93,7 @@ export class Lighter extends LabObject {
     this.outerFlame.scale.set(0.0055 * (1 + this.flare * 0.8), 0.014 * flick * big, 0.0055 * (1 + this.flare * 0.8));
     this.innerFlame.scale.set(0.003, 0.005 * flick * (1 + this.flare), 0.003);
     this.outerFlame.material.color.setRGB(1, 0.64 + this.flare * 0.3, 0.2 + this.flare * 0.7);
-    this.light.intensity = (0.35 + this.flare * 0.8) * flick;
+    this.light.intensity = (0.35 + this.flare * 0.8) * (1 + Math.sin(t * 7) * 0.04);   // smooth: no random flashes
     this.flame.updateMatrixWorld(true);
 
     // what is the flame sitting in?

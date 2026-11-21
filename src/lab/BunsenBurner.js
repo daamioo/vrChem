@@ -150,7 +150,7 @@ export class BunsenBurner extends Entity {
     this.outer.material.color.copy(_c);
     this.outer.material.opacity = THREE.MathUtils.lerp(0.9, 0.5, a) + this._tintK * 0.3 * a;
     this.light.color.copy(_c);
-    this.light.intensity = (0.25 + 0.6 * g) * (1 - 0.6 * a + this._tintK * 0.5) * flick;
+    this.light.intensity = (0.25 + 0.6 * g) * (1 - 0.6 * a + this._tintK * 0.5) * (1 + Math.sin(t * 6) * 0.04);
     w.audio?.play('flame', 0.12 + g * (0.15 + a * 0.5));
   }
 }
