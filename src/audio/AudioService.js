@@ -29,6 +29,8 @@ export class AudioService {
       squeak:     { gap: 0.25, fn: (v) => this._tone(420 + Math.random() * 120, 0.12, 0.05 * v, 'sawtooth', 380) },
       boing:      { gap: 0.06, fn: (v) => { this._tone(260, 0.18, 0.22 * v, 'sine', 140); this._noise(0.05, 0.08 * v, 'lowpass', 900); } },
       rubberSqueak: { gap: 0.07, fn: (v) => { const f = 700 + v * 600 + Math.random() * 120; this._tone(f, 0.09, 0.07 * v, 'square', f * 1.35); } },
+      purr:       { gap: 0.8,  fn: (v) => { this._purrIn = !this._purrIn; this._purr(0.9, 0.22 * v, this._purrIn ? 23 : 27); } },
+      meow:       { gap: 1.0,  fn: (v) => this._meow(0.16 * v) },
       boom:       { gap: 0.3,  fn: (v) => { this._noise(1.1, 0.7 * v, 'lowpass', 500); this._tone(55, 0.8, 0.6 * v, 'sine', 20); } },
     };
   }
@@ -79,5 +81,50 @@ export class AudioService {
     s.buffer = this.noise; f.type = filterType; f.frequency.value = freq;
     s.connect(f); f.connect(this._env(duration, gain));
     s.start(t, Math.random() * 0.5, duration);
+  }
+
+  /** Cat purr: low-passed noise chopped at ~25 Hz plus a soft buzz at the same rate. */
+  _purr(duration, gain, rate) {
+    const ctx = this.ctx, t = ctx.currentTime;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(gain, t + 0.2);
+    env.gain.setValueAtTime(gain, t + duration - 0.25);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    env.connect(this.master);
+    const am = ctx.createGain(); am.gain.value = 0.5; am.connect(env);
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.type = 'triangle'; lfo.frequency.value = rate; depth.gain.value = 0.5;
+    lfo.connect(depth); depth.connect(am.gain);
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter();
+    src.buffer = this.noise; f.type = 'lowpass'; f.frequency.value = 650;
+    src.connect(f); f.connect(am);
+    const buzz = ctx.createOscillator(), bf = ctx.createBiquadFilter(), bg = ctx.createGain();
+    buzz.type = 'sawtooth'; buzz.frequency.value = rate; bf.type = 'lowpass'; bf.frequency.value = 320; bg.gain.value = 0.5;
+    buzz.connect(bf); bf.connect(bg); bg.connect(env);
+    lfo.start(t); buzz.start(t); src.start(t, Math.random() * 0.05, duration);
+    lfo.stop(t + duration); buzz.stop(t + duration);
+  }
+
+  /** "Mi-a-ow": a sawtooth with a rising-falling pitch through two moving vowel formants. */
+  _meow(gain) {
+    const ctx = this.ctx, t = ctx.currentTime, d = 0.7;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(430, t);
+    o.frequency.exponentialRampToValueAtTime(760, t + 0.2);
+    o.frequency.exponentialRampToValueAtTime(470, t + d);
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(gain, t + 0.06);
+    env.gain.setValueAtTime(gain, t + d - 0.25);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    env.connect(this.master);
+    const f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), g2 = ctx.createGain();
+    f1.type = f2.type = 'bandpass'; f1.Q.value = 4; f2.Q.value = 5; g2.gain.value = 0.5;
+    f1.frequency.setValueAtTime(650, t); f1.frequency.linearRampToValueAtTime(1300, t + 0.25); f1.frequency.linearRampToValueAtTime(750, t + d);
+    f2.frequency.setValueAtTime(2000, t); f2.frequency.linearRampToValueAtTime(2600, t + 0.25); f2.frequency.linearRampToValueAtTime(1600, t + d);
+    o.connect(f1); f1.connect(env); o.connect(f2); f2.connect(g2); g2.connect(env);
+    o.start(t); o.stop(t + d);
   }
 }

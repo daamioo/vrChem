@@ -493,6 +493,16 @@
     1.6
    ],
    "rotationY": 90
+  },
+  {
+   "class": "Cat",
+   "position": [
+    2.24,
+    0,
+    -1.94
+   ],
+   "furColor": "#e08a3c",
+   "stripeColor": "#9a4f1c"
   }
  ]
 }
