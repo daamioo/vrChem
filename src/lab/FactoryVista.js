@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
+import { skyColors, fogColor, outdoorLight, sunDirection, daylight, duskness } from '../core/DayCycle.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
 const _p = new THREE.Vector3(), _v = new THREE.Vector3();
@@ -78,6 +79,9 @@ function bands(geo, h, colors, n) {
  * +X points away from the building, Z runs along it. Nothing out here is raycast or physical.
  * Its background sound (hum, machinery, the odd horn or clank) comes from the window: faint with
  * the window shut, much louder when it's open (world.env.outsideOpen).
+ * The time of day (world.env.hours, set by the WallClock) drives the sky (day blue, sunset,
+ * night with stars), the haze, how brightly the buildings are lit and how much the factory
+ * windows and street lamps glow — all changing smoothly.
  * def: { position, rotationY, groundY = -9, ambienceAt = [x, y, z] local position of the window }
  */
 export class FactoryVista extends Entity {
@@ -125,6 +129,18 @@ export class FactoryVista extends Entity {
       this.crane, this.flare, this.weld, this.crates]);
     bake(this.object3D, animated);
     this.object3D.traverse((o) => { o.raycast = () => {}; });
+    // Outdoor materials and their base colours: the time of day scales them (the lab's indoor
+    // lights also light these meshes, so their colour carries the outdoor brightness instead).
+    this.outdoorMats = [];
+    const seen = new Set();
+    this.object3D.traverse((o) => {
+      for (const m of [o.material].flat()) {
+        if (!m || seen.has(m) || !(m.isMeshLambertMaterial || m.isMeshStandardMaterial)) continue;
+        seen.add(m); this.outdoorMats.push({ m, base: m.color.clone() });
+      }
+    });
+    this.basics = [this.mat.lamp, this.mat.glazing].map((m) => ({ m, base: m.color.clone() }));
+    this._envKey = null;
     this.smoke = new ParticleSystem(world.scene, { capacity: 1300, gravity: -0.35, drag: 0.12 });
     this.smoke.points.material.fog = false;
   }
@@ -160,19 +176,29 @@ export class FactoryVista extends Entity {
   // ------------------------------------------------------------------ scenery
 
   buildSky() {
+    this.skyU = {
+      sun: { value: new THREE.Vector3(0.9, 0.08, -0.42).normalize() },
+      zenith: { value: new THREE.Color() }, mid: { value: new THREE.Color() }, horizon: { value: new THREE.Color() },
+      glow: { value: 1 }, night: { value: 0 }, dusk: { value: 1 },
+    };
     const sky = new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false, fog: false,
-      uniforms: { sun: { value: new THREE.Vector3(0.9, 0.08, -0.42).normalize() } },
+      uniforms: this.skyU,
       vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 sun; varying vec3 vDir;
+      fragmentShader: `uniform vec3 sun, zenith, mid, horizon; uniform float glow, night, dusk; varying vec3 vDir;
+        float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
         void main(){
           float h = vDir.y;
-          vec3 zenith = vec3(0.09,0.12,0.24), mid = vec3(0.40,0.33,0.45), horizon = vec3(0.93,0.55,0.33);
           vec3 c = mix(horizon, mid, smoothstep(0.0, 0.18, h));
           c = mix(c, zenith, smoothstep(0.15, 0.6, h));
           float s = max(dot(vDir, sun), 0.0);
-          c += vec3(1.0,0.55,0.25) * pow(s, 12.0) * 0.6 + vec3(1.0,0.85,0.6) * pow(s, 400.0) * 1.5;
-          if (h < 0.0) c = mix(horizon * 0.8, vec3(0.30,0.27,0.30), smoothstep(0.0, -0.1, h));
+          float up = smoothstep(-0.12, 0.04, sun.y);
+          c += (vec3(1.0,0.55,0.25) * pow(s, 12.0) * 0.6 * dusk + vec3(1.0,0.85,0.6) * pow(s, 400.0) * 1.5) * glow * up;
+          // fixed stars at night (static — no twinkle)
+          vec3 g = floor(vDir * 180.0);
+          float st = step(0.9965, hash(g)) * night * smoothstep(0.05, 0.3, h);
+          c += vec3(st * 0.9);
+          if (h < 0.0) c = mix(horizon * 0.8, horizon * 0.35, smoothstep(0.0, -0.1, h));
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
         }`,
@@ -285,6 +311,7 @@ export class FactoryVista extends Entity {
     const { map, emissive } = this.hallTextures(seed);
     map.repeat.set(len / 40, 1); emissive.repeat.set(len / 40, 1);
     const wallMat = new THREE.MeshLambertMaterial({ map, emissiveMap: emissive, emissive: 0xffffff, emissiveIntensity: 0.9 });
+    (this.hallMats ??= []).push(wallMat);
     const endMat = this.lam(0x6a727b);
     // box: long sides use the window texture, ends plain. Long axis = Z.
     this.add(new THREE.BoxGeometry(width, height, len), [wallMat, wallMat, this.mat.darkMetal, this.mat.darkMetal, endMat, endMat], 0, height / 2, 0, grp);
@@ -515,11 +542,37 @@ export class FactoryVista extends Entity {
         const sp = s.spread ?? 1.5;
         const o = origin.clone().add(new THREE.Vector3((Math.random() - 0.5) * sp, 0, (Math.random() - 0.5) * sp));
         const v = new THREE.Vector3((Math.random() - 0.5) * 0.8, s.speed * (0.7 + Math.random() * 0.6), (Math.random() - 0.5) * 0.8).add(wind);
-        this.smoke.emit(o, v, s.color, s.size * (0.7 + Math.random() * 0.6), 9 + Math.random() * 5, 3.5);
+        const k = this._smokeLight ?? 1, col = [s.color[0] * k, s.color[1] * k, s.color[2] * k, s.color[3]];
+        this.smoke.emit(o, v, col, s.size * (0.7 + Math.random() * 0.6), 9 + Math.random() * 5, 3.5);
       });
     }
     if (!this.world.particles) this.smoke.update(dt);
     this._ambience(dt);
+    this._applyTimeOfDay();
+  }
+
+  /** Sky, haze and outdoor brightness from world.env.hours (only recomputed when it changes). */
+  _applyTimeOfDay() {
+    const env = this.world.env, h = env.hours ?? 18, indoor = env.indoorLight ?? 1;
+    const key = `${h.toFixed(3)}|${indoor.toFixed(3)}`;
+    if (key === this._envKey) return;
+    this._envKey = key;
+    const sky = skyColors(h), dl = daylight(h), dk = duskness(h), out = outdoorLight(h);
+    const U = this.skyU;
+    U.zenith.value.setRGB(...sky.zenith); U.mid.value.setRGB(...sky.mid); U.horizon.value.setRGB(...sky.horizon);
+    U.sun.value.set(...sunDirection(h)).normalize();
+    U.night.value = 1 - dl; U.dusk.value = 0.35 + 0.65 * dk; U.glow.value = 0.4 + 0.6 * Math.max(dl, dk);
+    this.world.scene.fog?.color.setRGB(...fogColor(h));
+    // buildings: outdoor light level and tint, compensated for the indoor lights that also hit them
+    const k = Math.min(3, out.level / Math.max(0.05, indoor));
+    for (const { m, base } of this.outdoorMats) m.color.setRGB(base.r * out.tint[0] * k, base.g * out.tint[1] * k, base.b * out.tint[2] * k);
+    const night = 1 - dl;
+    for (const hm of this.hallMats ?? []) hm.emissiveIntensity = 0.25 + 0.75 * night;
+    const [lamp, glazing] = this.basics;
+    lamp.m.color.copy(lamp.base).multiplyScalar(0.45 + 0.55 * night);
+    glazing.m.color.copy(glazing.base).multiplyScalar(0.25 + 0.75 * Math.max(dl, dk * 0.8));
+    if (this.signMat) this.signMat.color.setScalar(0.6 + 0.4 * night);
+    this._smokeLight = 0.35 + 0.65 * out.level;
   }
 
   /** Industrial hum + machinery through the window, plus occasional distant horns and clanks. */

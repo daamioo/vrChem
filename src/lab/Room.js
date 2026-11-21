@@ -3,6 +3,7 @@ import { Entity } from '../core/Entity.js';
 import { Surface } from '../physics/Surface.js';
 import { Wall } from './Wall.js';
 import { WindowCasement } from './WindowCasement.js';
+import { daylight } from '../core/DayCycle.js';
 
 /** Procedural canvas textures for the clean white-panel lab look. */
 class PanelTextures {
@@ -142,13 +143,21 @@ export class Room extends Entity {
   }
 
   _addLights(h) {
-    this.object3D.add(new THREE.HemisphereLight(0xf2f8ff, 0x7d8794, 1.7));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.4);
-    sun.position.set(1.5, 3, 1.5);
-    this.object3D.add(sun);
-    const key = new THREE.PointLight(0xf4fbff, 1.3, 5, 1.4);
-    key.position.set(0, h - 0.5, -1.0);
-    this.object3D.add(key);
+    this.hemi = new THREE.HemisphereLight(0xf2f8ff, 0x7d8794, 1.7);       // ceiling panels (diffuse)
+    this.object3D.add(this.hemi);
+    this.sun = new THREE.DirectionalLight(0xffffff, 1.4);                  // daylight through the window + fill
+    this.sun.position.set(2.5, 3, 0.5);
+    this.object3D.add(this.sun);
+    this.key = new THREE.PointLight(0xf4fbff, 1.3, 5, 1.4);
+    this.key.position.set(0, h - 0.5, -1.0);
+    this.object3D.add(this.key);
+  }
+
+  /** Lights from the time of day; reports the indoor light level for the view outside. */
+  _updateLights() {
+    const dl = daylight(this.world.env.hours ?? 18);
+    this.sun.intensity = 0.6 + 0.9 * dl;
+    this.world.env.indoorLight = (this.hemi.intensity + 0.5 * this.sun.intensity) / (1.7 + 0.7);
   }
 
   onAdded() {
@@ -161,5 +170,6 @@ export class Room extends Entity {
     let open = 0;
     for (const c of this.casements) { c.update(dt); open = Math.max(open, c.open); }
     this.world.env.outsideOpen = open;      // how much outside sound gets in (FactoryVista ambience)
+    this._updateLights();
   }
 }

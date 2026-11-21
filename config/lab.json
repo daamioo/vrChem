@@ -666,6 +666,18 @@
    ],
    "rotationY": 180,
    "holdS": 1
+  },
+  {
+   "class": "WallClock",
+   "position": [
+    -1.75,
+    1.84,
+    2.17
+   ],
+   "rotationY": 180,
+   "radius": 0.16,
+   "startHours": 18,
+   "minutesPerSecond": 1
   }
  ],
  "windows": {
