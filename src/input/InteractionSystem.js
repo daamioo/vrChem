@@ -82,6 +82,7 @@ export class InteractionSystem {
     obj.body.support = null;
     obj.body.pinned = null;
     obj.body.velocity.set(0, 0, 0);
+    obj._prevLowY = undefined; obj._pressed = false;
     hand.grabOffset.copy(this._m.copy(hand.matrixWorld).invert()).multiply(obj.object3D.matrixWorld);
     hand.pulse(0.5, 40);
     this.world.audio?.play('tick', 0.6);
@@ -107,5 +108,33 @@ export class InteractionSystem {
     this._m.multiplyMatrices(hand.matrixWorld, hand.grabOffset);
     this._m.decompose(obj.object3D.position, obj.object3D.quaternion, this._s);
     obj.object3D.updateMatrixWorld(true);
+    this._keepOutOfSolids(hand, obj);
+  }
+
+  /**
+   * A held object coming down onto a bench (or the hot plate / scale) stops on its top: the hand
+   * can go on through, the object stays put. Hitting it fast counts as an impact (glass breaks).
+   * Reaching in from below or the side isn't blocked; the object pops out when let go.
+   */
+  _keepOutOfSolids(hand, obj) {
+    if (!obj.lowestPoint) return;
+    const low = obj.lowestPoint(this._low ??= new THREE.Vector3());
+    const prev = obj._prevLowY ?? low.y;
+    let hit = null;
+    for (const s of this.world.physics.surfaces) {
+      // came down from above the top, and is now below it, within the solid's footprint
+      if (low.y < s.top && prev >= s.top - 0.01 && s.isInside(low.x, s.top - 0.001, low.z) && (!hit || s.top > hit.top)) hit = s;
+    }
+    if (hit) {
+      obj.object3D.position.y += hit.top - low.y;
+      obj.object3D.updateMatrixWorld(true);
+      if (!obj._pressed) {
+        const speed = hand.velocity.length();
+        if (speed > 0.5) obj.onImpact?.(speed, hit);
+        hand.pulse(Math.min(1, 0.3 + speed * 0.3), 30);
+      }
+    }
+    obj._pressed = !!hit;
+    obj._prevLowY = hit ? hit.top : low.y;
   }
 }

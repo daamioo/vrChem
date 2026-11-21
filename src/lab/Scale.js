@@ -39,6 +39,7 @@ export class Scale extends Entity {
     this.surface = this.world.physics.addSurface(new Surface({
       owner: this, shape: 'circle', x: p.x + this.padLocal.x, z: p.z + this.padLocal.z,
       top: p.y + this.padTop, radius: this.def.padRadius,
+      solid: Surface.box({ depth: this.padTop }),
     }));
   }
   onRemoved() { this.world.physics.removeSurface(this.surface); }

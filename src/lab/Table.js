@@ -39,7 +39,10 @@ export class Table extends Entity {
   onAdded() {
     const [w, t, d] = this.def.size;
     const [x, y, z] = this.def.position;
-    this.surface = this.world.physics.addSurface(new Surface({ owner: this, shape: 'rect', x, z, top: y + t / 2, halfX: w / 2, halfZ: d / 2 }));
+    this.surface = this.world.physics.addSurface(new Surface({
+      owner: this, shape: 'rect', x, z, top: y + t / 2, halfX: w / 2, halfZ: d / 2,
+      solid: Surface.box({ depth: y + t / 2, inset: 0.05, insetBelow: t + 0.02 }),      // worktop, then the cabinet
+    }));
   }
   onRemoved() { this.world.physics.removeSurface(this.surface); }
 }

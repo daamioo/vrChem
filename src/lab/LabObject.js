@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
 import { PhysicsBody } from '../physics/PhysicsSystem.js';
 
+const _lp = new THREE.Vector3();
+
 /**
  * Base class for every grabbable object. Origin = bottom centre (or the tip for tools);
  * local +Y runs along the object's axis. Subclasses build their meshes in `build()`.
@@ -59,6 +61,17 @@ export class LabObject extends Entity {
   get axisUp() { return new THREE.Vector3(0, 1, 0).applyQuaternion(this.object3D.quaternion); }
   worldPointAt(localY, target = new THREE.Vector3()) {
     return target.set(0, localY, 0).applyMatrix4(this.object3D.matrixWorld);
+  }
+
+  /** Lowest world point of the object (its axis capsule), e.g. to keep it out of benches. */
+  lowestPoint(target = new THREE.Vector3()) {
+    this.object3D.updateMatrixWorld(true);
+    const a = this.worldPointAt(0, target), b = this.worldPointAt(this.height, _lp);
+    const r = this.collisionRadius || this.def.radius || 0;
+    if (b.y < a.y) a.copy(b);
+    const up = this.axisUp.y;
+    a.y -= this.height > 0 ? r * Math.sqrt(Math.max(0, 1 - up * up)) : r;
+    return a;
   }
 
   /** Radius of the capsule balls collide with (0 = balls pass through). */

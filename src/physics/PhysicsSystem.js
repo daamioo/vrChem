@@ -116,6 +116,13 @@ export class PhysicsSystem {
     });
   }
 
+  /** Highest surface whose solid body contains the point, or null. */
+  solidAt(x, y, z) {
+    let best = null;
+    for (const s of this.surfaces) if (s.isInside(x, y, z) && (!best || s.top > best.top)) best = s;
+    return best;
+  }
+
   /** Highest surface under (x,z) whose top is not above `maxTop`. */
   surfaceAt(x, z, maxTop = Infinity) {
     let best = null;
@@ -159,6 +166,9 @@ export class PhysicsSystem {
       if (b.rollRadius) this._roll(obj, dt, 0.5);
       if (this._walls(obj) && !this.bodies.has(obj)) continue;
 
+      // Let go inside a bench (or pushed into one)? Pop it out onto the top instead of falling through.
+      const inside = this.solidAt(p.x, p.y - b.restHeight, p.z);
+      if (inside) { p.y = inside.top + b.restHeight; b.support = inside; b.velocity.set(0, 0, 0); obj.onImpact?.(0, inside); continue; }
       const surface = this.surfaceAt(p.x, p.z, prevY - b.restHeight + 0.02);
       if (surface && p.y - b.restHeight <= surface.top) {
         const speed = Math.abs(b.velocity.y);

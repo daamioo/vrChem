@@ -45,6 +45,7 @@ export class HeatPlate extends Entity {
     this.surface = this.world.physics.addSurface(new Surface({
       owner: this, shape: 'circle', x: p.x + this.plateLocal.x, z: p.z + this.plateLocal.z,
       top: p.y + this.topY, radius: this.def.plateRadius,
+      solid: Surface.box({ depth: this.topY }),
       temperature: () => (this.temp > this.ambient + 3 ? this.temp : null),
     }));
   }
