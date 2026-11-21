@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
+import { RailYard } from './RailYard.js';
 import { skyColors, fogColor, outdoorLight, sunDirection, daylight, duskness } from '../core/DayCycle.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
@@ -71,10 +72,11 @@ function bands(geo, h, colors, n) {
 }
 
 /**
- * The view out of the lab's window: a big chemical plant at dusk seen from an upper floor.
- * Factory halls with lit windows and sawtooth roofs, smoking chimneys with blinking aircraft
- * lights, cooling towers venting steam, a flare stack, a tank farm, a gantry crane working a
- * container yard, a conveyor bridge carrying crates, trucks on the road and a freight train.
+ * The view out of the lab's window: a big chemical plant seen from an upper floor. Right below
+ * is a train yard (RailYard: switch ladders, signals, catenary, shunting); beyond it factory
+ * halls with lit windows and sawtooth roofs, smoking chimneys with blinking aircraft lights,
+ * cooling towers venting steam, a flare stack, a tank farm, a gantry crane working a container
+ * yard and a conveyor bridge carrying crates.
  * Everything is procedural (no assets). Local frame: origin at the base of the window wall,
  * +X points away from the building, Z runs along it. Nothing out here is raycast or physical.
  * Its background sound (hum, machinery, the odd horn or clank) comes from the window: faint with
@@ -112,7 +114,7 @@ export class FactoryVista extends Entity {
 
     this.buildSky();
     this.buildGround();
-    this.buildRoadAndRail();
+    this.yard = new RailYard(this);
     this.buildHalls();
     this.buildContainerYard();
     this.buildConveyor();
@@ -123,9 +125,11 @@ export class FactoryVista extends Entity {
 
     // merge static scenery and each moving rig into as few draw calls as possible
     for (const m of this.movers) bake(m.obj);
+    bake(this.yard.trainW); bake(this.yard.trainE);
+    for (const c of this.yard.consist) bake(c);
     for (const f of this.fans) bake(f.obj);
     bake(this.crane, new Set([this.trolley]));
-    const animated = new Set([...this.movers.map((m) => m.obj), ...this.fans.map((f) => f.obj), ...this.blinkers.map((b) => b.obj),
+    const animated = new Set([...this.movers.map((m) => m.obj), ...this.fans.map((f) => f.obj), ...this.blinkers.map((b) => b.obj), ...this.yard.animated,
       this.crane, this.flare, this.weld, this.crates]);
     bake(this.object3D, animated);
     this.object3D.traverse((o) => { o.raycast = () => {}; });
@@ -213,72 +217,6 @@ export class FactoryVista extends Entity {
       g.strokeStyle = 'rgba(40,42,46,0.6)'; g.lineWidth = 2; g.strokeRect(0, 0, w, h);
     }, { repeat: [80, 80] });
     this.add(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ map: tex }), 200, this.g, 0);
-  }
-
-  buildRoadAndRail() {
-    const g = this.g;
-    const roadTex = canvasTex(64, 256, (c, w, h) => {
-      c.fillStyle = '#2f3236'; c.fillRect(0, 0, w, h);
-      c.fillStyle = '#e8e2c8'; c.fillRect(w / 2 - 2, 0, 4, h * 0.5);
-      c.fillRect(2, 0, 3, h); c.fillRect(w - 5, 0, 3, h);
-    }, { repeat: [1, 60] });
-    this.add(new THREE.PlaneGeometry(9, 600).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ map: roadTex }), 13, g + 0.02, 0);
-    // street lamps
-    for (let z = -90; z <= 90; z += 18) {
-      this.add(new THREE.CylinderGeometry(0.08, 0.1, 7, 6), this.mat.darkMetal, 8, g + 3.5, z);
-      this.add(new THREE.BoxGeometry(1.2, 0.15, 0.3), this.mat.darkMetal, 8.6, g + 7, z);
-      this.add(new THREE.BoxGeometry(0.5, 0.06, 0.25), this.mat.lamp, 9, g + 6.9, z);
-    }
-    // trucks in both lanes
-    const colors = [0xc0392b, 0x2e86c1, 0xf2f3f4, 0x27ae60, 0xe67e22];
-    for (let i = 0; i < 6; i++) {
-      const dir = i % 2 ? 1 : -1;
-      const t = this.truck(colors[i % colors.length]);
-      t.position.set(13 + dir * 2.2, g, -150 + i * 55);
-      t.rotation.y = dir > 0 ? 0 : Math.PI;
-      this.object3D.add(t);
-      this.movers.push({ obj: t, speed: dir * (9 + this.rand() * 4), min: -160, max: 160 });
-    }
-    // railway with a freight train of tank wagons
-    const sleeperGeo = new THREE.BoxGeometry(2.6, 0.15, 0.25);
-    const sleepers = new THREE.InstancedMesh(sleeperGeo, this.mat.rust, 400);
-    for (let i = 0; i < 400; i++) sleepers.setMatrixAt(i, _m.makeTranslation(22, g + 0.08, -200 + i));
-    this.object3D.add(sleepers);
-    for (const dx of [-0.72, 0.72]) this.add(new THREE.BoxGeometry(0.1, 0.15, 400), this.mat.steel, 22 + dx, g + 0.22, 0);
-    const train = new THREE.Group();
-    train.add(this.locomotive());
-    for (let i = 1; i <= 12; i++) { const w = this.tankWagon(i % 3 === 0 ? 0x2d3a46 : i % 3 === 1 ? 0xd8dbe0 : 0x8b2f2a); w.position.z = -i * 13; train.add(w); }
-    train.position.set(22, g + 0.3, 40);
-    this.object3D.add(train);
-    this.movers.push({ obj: train, speed: 5, min: -60, max: 360 });
-  }
-
-  truck(color) {
-    const t = new THREE.Group(), paint = this.lam(color);
-    this.add(new THREE.BoxGeometry(2.4, 2.6, 2.2), paint, 0, 1.8, 5.2, t);                 // cab
-    this.add(new THREE.BoxGeometry(2.2, 0.7, 0.1), this.mat.darkMetal, 0, 2.4, 6.31, t);   // windscreen
-    this.add(new THREE.BoxGeometry(2.5, 3, 10), this.mat.white, 0, 2.1, -1.2, t);        // trailer
-    for (const x of [-0.8, 0.8]) this.add(new THREE.BoxGeometry(0.4, 0.25, 0.06), this.mat.lamp, x, 1.0, 6.32, t);   // headlights
-    for (const x of [-1, 1]) this.add(new THREE.BoxGeometry(0.3, 0.2, 0.06), this.mat.redLight, x, 1.0, -6.22, t);  // tail lights
-    const wheel = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 10).rotateZ(Math.PI / 2);
-    for (const z of [5, 1.5, -3, -4.4]) for (const x of [-1.1, 1.1]) this.add(wheel, this.mat.darkMetal, x, 0.5, z, t);
-    return t;
-  }
-
-  locomotive() {
-    const l = new THREE.Group();
-    this.add(new THREE.BoxGeometry(2.9, 3.6, 16), this.mat.yellow, 0, 2.1, 0, l);
-    this.add(new THREE.BoxGeometry(2.7, 0.9, 0.1), this.lam(0x1a222b), 0, 3.1, 8.01, l);
-    this.add(new THREE.BoxGeometry(0.5, 0.3, 0.08), this.mat.lamp, 0, 1.4, 8.02, l);
-    return l;
-  }
-
-  tankWagon(color) {
-    const w = new THREE.Group();
-    this.add(new THREE.BoxGeometry(2.6, 0.5, 12), this.mat.darkMetal, 0, 0.6, 0, w);
-    this.add(new THREE.CapsuleGeometry(1.4, 9, 4, 14).rotateX(Math.PI / 2), this.lam(color), 0, 2.3, 0, w);
-    this.add(new THREE.CylinderGeometry(0.35, 0.35, 0.3, 10), this.mat.darkMetal, 0, 3.8, 0, w);
-    return w;
   }
 
   /** Hall facade: corrugated panels with rows of windows, some lit (emissive map). */
@@ -485,6 +423,7 @@ export class FactoryVista extends Entity {
 
   update(dt) {
     const t = this.world.time;
+    this.yard.update(dt);
     for (const m of this.movers) {
       m.obj.position.z += m.speed * dt;
       if (m.speed > 0 && m.obj.position.z > m.max) m.obj.position.z = m.min;
