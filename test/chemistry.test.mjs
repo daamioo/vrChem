@@ -94,3 +94,36 @@ test('pouring liquid takes dissolved solids along and keeps sediment', () => {
   assert.ok(Math.abs(out.get('sodium_chloride') - 18) < 1e-9);
   assert.ok(Math.abs(m.layers.sediment.get('sodium_chloride') - 14) < 1e-6 || m.amount('sodium_chloride') > 18);
 });
+
+test('pH: water neutral, acids low, bases high, dry powder has none', () => {
+  const ph = (contents) => { const m = new Mixture(chem); for (const [id, g] of Object.entries(contents)) m.add(id, g); return m.pH; };
+  assert.equal(ph({ water: 100 }), 7);
+  assert.ok(ph({ water: 100, hydrochloric_acid: 10 }) < 2.5);
+  assert.ok(ph({ acetic_acid: 50 }) > 2 && ph({ acetic_acid: 50 }) < 4);
+  assert.ok(ph({ water: 100, sodium_hydroxide: 1 }) > 11);
+  assert.ok(ph({ water: 50, baking_soda: 3 }) > 7 && ph({ water: 50, baking_soda: 3 }) < 9);
+  assert.equal(ph({ sodium_chloride: 5 }), null);
+});
+
+test('pH: matching amounts of HCl and NaOH neutralise to about 7', () => {
+  const m = new Mixture(chem);
+  const naoh = 1, hcl = (naoh / chem.get('sodium_hydroxide').molarMass) * chem.get('hydrochloric_acid').molarMass;
+  m.add('water', 50); m.add('sodium_hydroxide', naoh); m.add('hydrochloric_acid', hcl);
+  const before = m.pH;
+  run(m, 30);
+  assert.ok(Math.abs(before - 7) < 1 && Math.abs(m.pH - 7) < 1, `neutral: ${before} -> ${m.pH}`);
+  const excess = new Mixture(chem);
+  excess.add('water', 50); excess.add('sodium_hydroxide', naoh); excess.add('hydrochloric_acid', hcl * 3);
+  run(excess, 30);
+  assert.ok(excess.pH < 3, `excess acid stays acidic: ${excess.pH}`);
+});
+
+test('universal indicator colours the liquid by pH', () => {
+  const m = new Mixture(chem);
+  m.add('water', 50); m.add('universal_indicator', 2);
+  const neutral = m.layers.liquidColor;
+  m.add('hydrochloric_acid', 5);
+  const acid = m.layers.liquidColor;
+  assert.ok(neutral.g > neutral.r, 'green at pH 7');
+  assert.ok(acid.r > acid.g, 'red in acid');
+});

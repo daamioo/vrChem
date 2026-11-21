@@ -47,6 +47,17 @@ export class Lighter extends LabObject {
     for (const m of [this.outerFlame, this.innerFlame]) m.raycast = () => {};
   }
 
+  onAdded() { super.onAdded(); this.world.flames.add(this); }
+  onRemoved() { super.onRemoved(); this.world.flames.delete(this); }
+
+  /** Flame API (world.flames): distance from a point to the flame, Infinity when out. */
+  flameDistance(p) {
+    if (!this.lit) return Infinity;
+    this.object3D.updateMatrixWorld(true);
+    return Math.max(0, p.distanceTo(this.flamePoint) - 0.008);
+  }
+  get flameHeat() { return 300 + this.flare * 300; }
+
     get totalMassG() { return this.def.massG ?? 20; }
   get collisionRadius() { return 0.013; }
 

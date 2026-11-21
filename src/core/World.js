@@ -24,12 +24,20 @@ export class World {
     this.pourTargets = new Set();  // things liquids/powders can be poured into
     this.markables = new Set();  // things markers can colour / erasers wipe: markTouch(point, ink, dt), wipeTouch(point, dt)
     this.gasSources = new Set(); // gas jets a flame can act on: jetAt(point), ignite(cylinder)
+    this.flames = new Set();     // anything burning: flameDistance(point) (Infinity when out), flameHeat (°C), optional tintFlame(color, k)
+    this.factory = null;         // LabFactory, for spawning items at runtime
     this.controls = new Set();     // grabbable controls: Dial, Lever (anything with distanceToPoint/beginGrab/endGrab/update)
 
     // Services attached by the App (audio, particles, input, ...)
     this.audio = null; this.particles = null; this.foamSplats = null; this.input = null; this.rig = null;
     this.time = 0;
     this._timers = [];
+  }
+
+  /** The first lit flame within `radius` of a world point (ignoring `exclude`), or null. */
+  flameAt(point, radius = 0, exclude = null) {
+    for (const f of this.flames) if (f !== exclude && f.flameDistance(point) <= radius) return f;
+    return null;
   }
 
   /** Runs `fn` once after `seconds` of world time. */

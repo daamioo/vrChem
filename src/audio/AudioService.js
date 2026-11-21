@@ -34,6 +34,8 @@ export class AudioService {
       flick:      { gap: 0.1,  fn: (v) => { this._noise(0.05, 0.18 * v, 'highpass', 4000); this._tone(3200, 0.02, 0.05 * v, 'square'); } },
       whoomp:     { gap: 0.4,  fn: (v) => { this._noise(0.6, 0.45 * v, 'lowpass', 350); this._tone(90, 0.5, 0.3 * v, 'sine', 45); } },
       flame:      { gap: 0.2,  fn: (v) => { this._noise(0.3, 0.14 * v, 'lowpass', 420); this._noise(0.25, 0.04 * v, 'bandpass', 1600); } },
+      pop:        { gap: 0.15, fn: (v) => { this._noise(0.06, 0.4 * v, 'highpass', 1500); this._tone(1300, 0.12, 0.18 * v, 'triangle', 380); } },
+      drip:       { gap: 0.04, fn: (v) => this._tone(1500 + Math.random() * 400, 0.05, 0.06 * v, 'sine', 800) },
       boom:       { gap: 0.3,  fn: (v) => { this._noise(1.1, 0.7 * v, 'lowpass', 500); this._tone(55, 0.8, 0.6 * v, 'sine', 20); } },
     };
   }

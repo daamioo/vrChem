@@ -28,6 +28,7 @@ export class Container extends LabObject {
     this.tipped = null;                        // horizontal direction it fell toward, while lying on its side
     this._prevBottom = new THREE.Vector3();
     this._hasPrevBottom = false;
+    this.gas = null;                           // { id, amount 0..1 }: gas filling the empty space (invisible)
 
     // Glass shell
     this.glass = new THREE.Mesh(
@@ -122,6 +123,75 @@ export class Container extends LabObject {
     this.world.audio?.play('pourSplash', 0.4);
   }
 
+  /** World Y of the liquid surface, or -Infinity when there's no liquid. */
+  liquidTopY() {
+    const L = this.mixture.layers;
+    if (L.liquidVolume < 0.05) return -Infinity;
+    return this.worldPointAt(this.profile.heightForVolume(L.totalVolume), _b).y;
+  }
+
+  // ------------------------------------------------------------------ gas
+
+  /** Gas given off inside the vessel (grams) fills its empty space. */
+  collectGas(id, grams) {
+    const c = this.world.chemicals.get(id);
+    const ml = (grams / c.molarMass) * 24000;
+    this._addGas(id, ml / Math.max(1, this.capacityMl - this.mixture.totalVolume));
+  }
+
+  /** Adds `fraction` of a full vessel of gas, pushing out whatever gas was there. */
+  _addGas(id, fraction) {
+    if (this.sealed || fraction <= 0) return;
+    if (this.gas && this.gas.id !== id) {
+      this.gas.amount -= fraction;
+      if (this.gas.amount <= 0) this.gas = { id, amount: Math.min(1, -this.gas.amount) };
+      return;
+    }
+    this.gas ??= { id, amount: 0 };
+    this.gas.amount = Math.min(1, this.gas.amount + fraction);
+  }
+
+  /**
+   * Held mouth-down over a cylinder's jet, the vessel fills with that gas. Gas lighter than air
+   * (hydrogen) escapes upward out of an open mouth, heavier gas (CO2, oxygen) pours out of a
+   * mouth held downward, so a tube of hydrogen is kept upside down and one of oxygen upright.
+   */
+  _gasExchange(dt) {
+    if (this.sealed) return;
+    if (this.mixture.totalVolume > this.capacityMl * 0.9) { this.gas = null; return; }
+    const up = this.axisUp;
+    if (up.y < -0.3) {
+      const mouth = this.getOpening().center;
+      for (const src of this.world.gasSources) {
+        const j = src.jetAt(mouth);
+        if (j) { this._addGas(j.gas, j.flow * 0.9 * dt); this.body.held?.pulse?.(0.05, 20); }
+      }
+    }
+    if (!this.gas) return;
+    const c = this.world.chemicals.get(this.gas.id);
+    const light = c.molarMass < 29;
+    const leak = light ? Math.max(0, up.y) : Math.max(0, -up.y);
+    const width = this.profile.openingRadius / 0.015;             // wide mouths lose gas faster
+    this.gas.amount -= (this.gas.amount * leak * (light ? 1.2 : 0.3) * width + 0.006) * dt;
+    if (this.gas.amount < 0.003) this.gas = null;
+  }
+
+  /** A flame at the mouth of a vessel holding a fuel gas: squeaky pop (and a drop of water). */
+  _popCheck() {
+    if (!this.gas || this.gas.amount < 0.12) return;
+    const c = this.world.chemicals.get(this.gas.id);
+    if (c.combustion !== 'fuel') return;
+    const o = this.getOpening();
+    if (!this.world.flameAt(o.center, o.radius + 0.015)) return;
+    const k = this.gas.amount;
+    this.gas = null;
+    this.world.audio?.play('pop', 0.5 + k * 0.7);
+    this.world.particles?.sparks.emitBurst(o.center, Math.round(6 + 10 * k), { color: [1, 0.8, 0.45, 1], speed: 0.6, size: 0.005, life: 0.18, up: 0.3, spread: o.radius });
+    this.mixture.add('water', 0.03 * k);
+    this.body.held?.pulse?.(0.9, 60);
+    this.world.bus.emit('experiment', { type: 'hydrogen-pop', container: this, strength: k });
+  }
+
   /** True if a world point lies inside the vessel's cavity (used by probes). */
   containsPoint(p) {
     const l = this.object3D.worldToLocal(_a.copy(p));
@@ -146,7 +216,10 @@ export class Container extends LabObject {
 
     for (const event of this.world.engine.step(mix, dt)) {
       this.world.bus.emit('reaction:step', { container: this, event });
+      for (const [id, g] of event.gas) this.collectGas(id, g);
     }
+    this._gasExchange(dt);
+    this._popCheck();
 
     this._pour(dt);
     this._overflow();
@@ -210,7 +283,13 @@ export class Container extends LabObject {
     const t = this.world.settings.thermal;
     const ambient = this.world.settings.ambientTemperatureC;
     const surfaceT = this.body.support?.temperature?.() ?? null;
-    const target = surfaceT ?? ambient;
+    // held in (or standing in) a flame: heats toward the flame's temperature
+    let flameT = null;
+    if (this.world.flames.size) {
+      const bottom = this.worldPointAt(0.006, _a);
+      for (const f of this.world.flames) if (f.flameDistance(bottom) < 0.004) flameT = Math.max(flameT ?? -Infinity, f.flameHeat);
+    }
+    const target = Math.max(surfaceT ?? ambient, flameT ?? -Infinity);
     const tau = target > mix.temperature
       ? Math.max(8, t.heatingTimeConstantPerG * Math.max(20, mix.totalMass))
       : t.coolingTimeConstantS;

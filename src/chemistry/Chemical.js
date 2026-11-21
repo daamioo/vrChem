@@ -14,6 +14,10 @@ export class Chemical {
     this.boilingPoint = def.boilingPoint ?? 100;
     this.hazard = def.hazard ?? null;
     this.combustion = def.combustion ?? null;   // gases: 'fuel' | 'oxidizer' | 'smothers' (what a flame does in it)
+    this.ph = def.ph ?? 7;                       // pH of its solution (acids < 7 < bases)
+    this.flameColor = def.flameColor ?? null;    // colour it gives a flame in a flame test
+    this.flameSparks = !!def.flameSparks;        // throws sparks in a flame (metal powders)
+    this.indicator = def.indicator ?? null;      // 'universal': colours the liquid by its pH
   }
 
   get isSolid() { return this.state === 'solid'; }

@@ -157,6 +157,18 @@
     2.4,
     1.2
    ]
+  },
+  {
+   "class": "PhChart",
+   "position": [
+    -1.75,
+    1.75,
+    -2.185
+   ],
+   "size": [
+    0.62,
+    0.4
+   ]
   }
  ],
  "items": [
@@ -464,6 +476,119 @@
     0.05
    ],
    "rotationY": -90
+  },
+  {
+   "equipment": "bunsen_burner",
+   "position": [
+    0.9,
+    0.925,
+    -1.68
+   ]
+  },
+  {
+   "equipment": "flame_loop",
+   "position": [
+    -0.98,
+    0.93,
+    -1.74
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "flame_loop",
+   "position": [
+    -0.98,
+    0.93,
+    -1.69
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "splint",
+   "position": [
+    -0.78,
+    0.93,
+    -1.78
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "splint",
+   "position": [
+    -0.78,
+    0.93,
+    -1.74
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "splint",
+   "position": [
+    -0.78,
+    0.93,
+    -1.7
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "test_tube",
+   "anchor": "main",
+   "slot": 5,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "test_tube",
+   "anchor": "main",
+   "slot": 5.5,
+   "offset": [
+    0,
+    0,
+    0.25
+   ]
+  },
+  {
+   "equipment": "burette",
+   "position": [
+    1.72,
+    1.175,
+    -0.7
+   ]
+  },
+  {
+   "equipment": "pipette",
+   "position": [
+    1.42,
+    0.93,
+    -0.5
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "pipette",
+   "position": [
+    1.42,
+    0.93,
+    -0.45
+   ],
+   "rotationY": 90
+  },
+  {
+   "equipment": "ph_strip_box",
+   "position": [
+    1.42,
+    0.925,
+    -0.85
+   ]
+  },
+  {
+   "equipment": "bottle_liquid",
+   "chemical": "universal_indicator",
+   "anchor": "right_front",
+   "slot": 3
   }
  ],
  "decor": [

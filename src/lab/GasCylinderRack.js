@@ -183,6 +183,10 @@ export class GasCylinderRack extends Decor {
       const origin = this.object3D.localToWorld(_p.copy(c.nozzle));
       const dir = _d.copy(c.dir).applyQuaternion(_q);
       const col = [c.color.r, c.color.g, c.color.b];
+      // any flame (lighter, burning splint, Bunsen) held in a fuel jet sets it alight
+      if (!c.burning && c.combustion === 'fuel' && w.flames.size) {
+        for (let k = 1; k <= 5 && !c.burning; k++) if (w.flameAt(_h.copy(origin).addScaledVector(dir, k * (0.03 + 0.1 * flow)), 0.012)) this.ignite(c);
+      }
       if (c.burning) { this._burn(c, flow, origin, dir, dt); continue; }
 
       // Expanding mist cloud: slows down, swells and drifts.

@@ -7,7 +7,8 @@
     "density": 1.0,
     "color": "#9fd4ff",
     "alpha": 0.35,
-    "tintPower": 0.0
+    "tintPower": 0.0,
+    "ph": 7
   },
   "acetic_acid": {
     "name": "Ocet (kwas octowy)",
@@ -18,7 +19,8 @@
     "color": "#e9e2c0",
     "alpha": 0.4,
     "boilingPoint": 118,
-    "hazard": "mild"
+    "hazard": "mild",
+    "ph": 4.2
   },
   "hydrochloric_acid": {
     "name": "Kwas solny",
@@ -29,7 +31,8 @@
     "color": "#e8f2a0",
     "alpha": 0.45,
     "boilingPoint": 85,
-    "hazard": "corrosive"
+    "hazard": "corrosive",
+    "ph": 1
   },
   "hydrogen_peroxide": {
     "name": "Woda utleniona (nadtlenek wodoru)",
@@ -40,7 +43,8 @@
     "color": "#d8f0ff",
     "alpha": 0.35,
     "boilingPoint": 150,
-    "hazard": "oxidizer"
+    "hazard": "oxidizer",
+    "ph": 6
   },
   "dish_soap": {
     "name": "Płyn do naczyń",
@@ -50,7 +54,8 @@
     "density": 1.03,
     "color": "#69e0a0",
     "alpha": 0.6,
-    "tintPower": 0.5
+    "tintPower": 0.5,
+    "ph": 9
   },
   "food_dye_red": {
     "name": "Czerwony barwnik spożywczy",
@@ -70,7 +75,8 @@
     "density": 2.16,
     "color": "#f4f4f4",
     "solubility": 36,
-    "tintPower": 0
+    "tintPower": 0,
+    "flameColor": "#ffb21a"
   },
   "baking_soda": {
     "name": "Soda oczyszczona",
@@ -80,7 +86,9 @@
     "density": 2.2,
     "color": "#fafaf5",
     "solubility": 9,
-    "tintPower": 0
+    "tintPower": 0,
+    "ph": 8.3,
+    "flameColor": "#ffb21a"
   },
   "citric_acid": {
     "name": "Kwas cytrynowy",
@@ -90,7 +98,8 @@
     "density": 1.66,
     "color": "#fffbe6",
     "solubility": 59,
-    "tintPower": 0
+    "tintPower": 0,
+    "ph": 2.2
   },
   "sodium_hydroxide": {
     "name": "Wodorotlenek sodu",
@@ -101,7 +110,9 @@
     "color": "#eef2f8",
     "solubility": 111,
     "tintPower": 0,
-    "hazard": "corrosive"
+    "hazard": "corrosive",
+    "ph": 13,
+    "flameColor": "#ffb21a"
   },
   "calcium_carbonate": {
     "name": "Kreda (węglan wapnia)",
@@ -110,7 +121,9 @@
     "state": "solid",
     "density": 2.71,
     "color": "#f0ece2",
-    "solubility": 0
+    "solubility": 0,
+    "ph": 9,
+    "flameColor": "#ff5a28"
   },
   "calcium_chloride": {
     "name": "Chlorek wapnia",
@@ -120,7 +133,8 @@
     "density": 2.15,
     "color": "#f2f2f2",
     "solubility": 75,
-    "tintPower": 0
+    "tintPower": 0,
+    "flameColor": "#ff5a28"
   },
   "magnesium": {
     "name": "Wióry magnezu",
@@ -130,7 +144,9 @@
     "density": 1.74,
     "color": "#b9bcc4",
     "solubility": 0,
-    "hazard": "flammable"
+    "hazard": "flammable",
+    "flameColor": "#ffffff",
+    "flameSparks": true
   },
   "magnesium_chloride": {
     "name": "Chlorek magnezu",
@@ -140,7 +156,8 @@
     "density": 2.32,
     "color": "#f2f2f2",
     "solubility": 54,
-    "tintPower": 0
+    "tintPower": 0,
+    "ph": 6.5
   },
   "iron_filings": {
     "name": "Opiłki żelaza",
@@ -149,7 +166,9 @@
     "state": "solid",
     "density": 7.87,
     "color": "#4a4a50",
-    "solubility": 0
+    "solubility": 0,
+    "flameColor": "#ffcc66",
+    "flameSparks": true
   },
   "iron_sulfate": {
     "name": "Siarczan żelaza(II)",
@@ -159,7 +178,8 @@
     "density": 3.65,
     "color": "#9ccf9a",
     "solubility": 26,
-    "tintPower": 1.5
+    "tintPower": 1.5,
+    "ph": 3.5
   },
   "copper": {
     "name": "Miedź",
@@ -168,7 +188,8 @@
     "state": "solid",
     "density": 8.96,
     "color": "#c8643a",
-    "solubility": 0
+    "solubility": 0,
+    "flameColor": "#2ee07a"
   },
   "copper_sulfate": {
     "name": "Siarczan miedzi(II)",
@@ -179,7 +200,9 @@
     "color": "#2f7bff",
     "solubility": 20,
     "tintPower": 3.5,
-    "alpha": 0.8
+    "alpha": 0.8,
+    "ph": 4,
+    "flameColor": "#2ee07a"
   },
   "potassium_iodide": {
     "name": "Jodek potasu",
@@ -189,7 +212,8 @@
     "density": 3.12,
     "color": "#f6f6f2",
     "solubility": 144,
-    "tintPower": 0
+    "tintPower": 0,
+    "flameColor": "#b98cff"
   },
   "lead_nitrate": {
     "name": "Azotan ołowiu(II)",
@@ -200,7 +224,9 @@
     "color": "#f4f4f4",
     "solubility": 52,
     "tintPower": 0,
-    "hazard": "toxic"
+    "hazard": "toxic",
+    "ph": 4.5,
+    "flameColor": "#a9c4ff"
   },
   "lead_iodide": {
     "name": "Jodek ołowiu(II)",
@@ -219,7 +245,8 @@
     "density": 2.11,
     "color": "#f4f4f4",
     "solubility": 32,
-    "tintPower": 0
+    "tintPower": 0,
+    "flameColor": "#b98cff"
   },
   "sodium_acetate": {
     "name": "Octan sodu",
@@ -229,7 +256,9 @@
     "density": 1.53,
     "color": "#f4f4f0",
     "solubility": 46,
-    "tintPower": 0
+    "tintPower": 0,
+    "ph": 8.9,
+    "flameColor": "#ffb21a"
   },
   "sodium_metal": {
     "name": "Sód metaliczny",
@@ -239,7 +268,8 @@
     "density": 0.97,
     "color": "#c9ccd2",
     "solubility": 0,
-    "hazard": "reactive"
+    "hazard": "reactive",
+    "flameColor": "#ffb21a"
   },
   "phenolphthalein": {
     "name": "Fenoloftaleina",
@@ -285,5 +315,18 @@
     "state": "gas",
     "color": "#dceeff",
     "combustion": "oxidizer"
+  },
+  "universal_indicator": {
+    "name": "Wskaźnik uniwersalny",
+    "formula": "",
+    "molarMass": 300,
+    "state": "liquid",
+    "density": 1.0,
+    "color": "#4db849",
+    "alpha": 0.75,
+    "tintPower": 0.6,
+    "boilingPoint": 100,
+    "ph": 7,
+    "indicator": "universal"
   }
 }

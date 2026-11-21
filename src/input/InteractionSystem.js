@@ -69,6 +69,11 @@ export class InteractionSystem {
       if (hand.canAirGrab && this.world.settings.player.grabMove !== false) { hand.airGrab = true; hand.pulse(0.25, 25); }
       return;
     }
+    this.grab(hand, obj);
+  }
+
+  /** Puts `obj` in `hand` (taking it from the other hand if needed). Also used by dispensers. */
+  grab(hand, obj) {
     for (const other of this.hands) if (other.held === obj) this.release(other, false);
 
     obj.object3D.updateMatrixWorld(true);

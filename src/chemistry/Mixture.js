@@ -4,6 +4,17 @@ export function hexToRgb(hex) {
   return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
 
+/** Universal indicator colours for pH 0..14 (interpolated). */
+const UNIVERSAL = ['#d01c1f', '#ee1c25', '#f26724', '#f8a51b', '#f5e31c', '#b5d334', '#84c341', '#4db849',
+  '#22a85a', '#0fae8f', '#0ab0c8', '#4690cd', '#3853a4', '#5a51a2', '#63459d'];
+
+/** Colour of universal indicator (and pH paper) at a given pH, as {r,g,b} 0..1. */
+export function universalIndicatorColor(ph) {
+  const x = Math.max(0, Math.min(14, ph)), i = Math.min(13, Math.floor(x)), t = x - i;
+  const a = hexToRgb(UNIVERSAL[i]), b = hexToRgb(UNIVERSAL[i + 1]);
+  return { r: a.r + (b.r - a.r) * t, g: a.g + (b.g - a.g) * t, b: a.b + (b.b - a.b) * t };
+}
+
 /**
  * The physical contents of a container: grams per chemical plus temperature and stir state.
  * Solids dissolve into the liquid up to their solubility; the rest is "sediment".
@@ -74,10 +85,11 @@ export class Mixture {
       if (d > 0) dissolved.set(id, d);
       if (g - d > 1e-6) { sediment.set(id, g - d); sedimentVol += (g - d) / c.density; }
     }
+    const pH = liquidVol > 0.01 ? this._computePH(dissolved) : null;
     this._cache = {
       liquidVolume: liquidVol, sedimentVolume: sedimentVol, dissolved, sediment,
-      totalVolume: liquidVol + sedimentVol,
-      liquidColor: this._blendLiquid(dissolved),
+      totalVolume: liquidVol + sedimentVol, pH,
+      liquidColor: this._blendLiquid(dissolved, pH),
       sedimentColor: this._blendSolids(sediment),
     };
     return this._cache;
@@ -86,8 +98,35 @@ export class Mixture {
   get liquidVolume() { return this.layers.liquidVolume; }
   get sedimentVolume() { return this.layers.sedimentVolume; }
   get totalVolume() { return this.layers.totalVolume; }
+  /** pH of the liquid (null when there is no liquid). */
+  get pH() { return this.layers.pH; }
 
-  _blendLiquid(dissolved) {
+  /**
+   * A game-friendly pH. Each liquid / dissolved chemical pushes toward acid or base with strength
+   * 10^|7 - pH| per mole (its `ph` in chemicals.json), scaled by its mole fraction (water-like
+   * solvent ~ 18 g/mol). Acid and base pushes cancel mole for mole, so a neutralised mixture reads
+   * 7; the log scale then gives the familiar values (vinegar ~3, baking soda ~8, NaOH ~12.5).
+   */
+  _computePH(dissolved) {
+    let total = 0, net = 0;
+    const parts = [];
+    for (const [id, g] of this.grams) { const c = this.db.get(id); if (c.isLiquid) parts.push([c, g]); }
+    for (const [id, g] of dissolved) parts.push([this.db.get(id), g]);
+    for (const [, g] of parts) total += g;
+    if (total <= 0) return null;
+    const solventMol = total / 18;
+    for (const [c, g] of parts) {
+      const d = 7 - c.ph;
+      if (Math.abs(d) < 1e-6) continue;
+      net += Math.sign(d) * 10 ** Math.abs(d) * (g / c.molarMass) / solventMol;
+    }
+    return Math.max(0, Math.min(14, 7 - Math.sign(net) * Math.log10(1 + 53 * Math.abs(net))));
+  }
+
+  _blendLiquid(dissolved, pH = null) {
+    if (pH != null) for (const id of this.grams.keys()) {
+      if (this.db.get(id).indicator === 'universal') return { ...universalIndicatorColor(pH), a: 0.85 };
+    }
     let w = 0, r = 0, g = 0, b = 0, a = 0;
     const accum = (hex, alpha, weight) => {
       const c = hexToRgb(hex);

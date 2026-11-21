@@ -25,6 +25,14 @@ import { GasCylinderRack } from './GasCylinderRack.js';
 import { Cat } from './Cat.js';
 import { Lighter } from './Lighter.js';
 import { FactoryVista } from './FactoryVista.js';
+import { BunsenBurner } from './BunsenBurner.js';
+import { FlameTestLoop } from './FlameTestLoop.js';
+import { Splint } from './Splint.js';
+import { PhStrip } from './PhStrip.js';
+import { PhStripBox } from './PhStripBox.js';
+import { Pipette } from './Pipette.js';
+import { Burette } from './Burette.js';
+import { PhChart } from '../ui/PhChart.js';
 import { decorRegistry } from './Decor.js';
 
 /** Maps the `"class"` strings in config files to implementations. Add new equipment types here. */
@@ -32,11 +40,13 @@ export const equipmentRegistry = new Registry('equipment class')
   .register('Beaker', Beaker).register('Flask', Flask).register('TestTube', TestTube)
   .register('ReagentBottle', ReagentBottle).register('StirRod', StirRod).register('Thermometer', Thermometer)
   .register('Scale', Scale).register('HeatPlate', HeatPlate).register('WasteBin', WasteBin).register('ResetCrate', ResetCrate).register('FireExtinguisher', FireExtinguisher)
-  .register('Marker', Marker).register('Eraser', Eraser).register('BouncyBall', BouncyBall).register('Lighter', Lighter);
+  .register('Marker', Marker).register('Eraser', Eraser).register('BouncyBall', BouncyBall).register('Lighter', Lighter)
+  .register('BunsenBurner', BunsenBurner).register('FlameTestLoop', FlameTestLoop).register('Splint', Splint)
+  .register('PhStrip', PhStrip).register('PhStripBox', PhStripBox).register('Pipette', Pipette).register('Burette', Burette);
 
 decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista);
 export const furnitureRegistry = new Registry('furniture class').register('Table', Table);
-export const boardRegistry = new Registry('board class').register('NotebookBoard', NotebookBoard).register('HelpBoard', HelpBoard).register('Whiteboard', Whiteboard);
+export const boardRegistry = new Registry('board class').register('NotebookBoard', NotebookBoard).register('HelpBoard', HelpBoard).register('Whiteboard', Whiteboard).register('PhChart', PhChart);
 
 /** Builds the whole lab from config/lab.json + config/equipment.json. */
 export class LabFactory {
@@ -44,6 +54,7 @@ export class LabFactory {
     this.world = world;
     this.lab = world.config.lab;
     this.equipment = world.config.equipment;
+    world.factory = this;
   }
 
   buildAll() {
