@@ -267,20 +267,23 @@
     "formula": "CO2",
     "molarMass": 44.01,
     "state": "gas",
-    "color": "#dfe6ee"
+    "color": "#dfe6ee",
+    "combustion": "smothers"
   },
   "hydrogen": {
     "name": "Wodór",
     "formula": "H2",
     "molarMass": 2.016,
     "state": "gas",
-    "color": "#ffffff"
+    "color": "#ffffff",
+    "combustion": "fuel"
   },
   "oxygen": {
     "name": "Tlen",
     "formula": "O2",
     "molarMass": 31.998,
     "state": "gas",
-    "color": "#dceeff"
+    "color": "#dceeff",
+    "combustion": "oxidizer"
   }
 }

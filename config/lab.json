@@ -455,6 +455,15 @@
     0.97,
     -1.38
    ]
+  },
+  {
+   "equipment": "lighter",
+   "position": [
+    1.6,
+    0.925,
+    0.05
+   ],
+   "rotationY": -90
   }
  ],
  "decor": [

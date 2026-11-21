@@ -160,5 +160,11 @@
     "color": "#2563eb",
     "stripeColor": "#f8fafc",
     "restitution": 0.82
+  },
+  "lighter": {
+    "class": "Lighter",
+    "displayName": "Zapalniczka",
+    "massG": 20,
+    "color": "#d62828"
   }
 }

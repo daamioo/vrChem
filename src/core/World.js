@@ -22,6 +22,7 @@ export class World {
     this.entities = new Set();
     this.grabbables = new Set();   // LabObjects hands can pick up
     this.pourTargets = new Set();  // things liquids/powders can be poured into
+    this.gasSources = new Set(); // gas jets a flame can act on: jetAt(point), ignite(cylinder)
     this.controls = new Set();     // grabbable controls: Dial, Lever (anything with distanceToPoint/beginGrab/endGrab/update)
 
     // Services attached by the App (audio, particles, input, ...)

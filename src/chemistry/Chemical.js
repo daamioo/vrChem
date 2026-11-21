@@ -13,6 +13,7 @@ export class Chemical {
     this.tintPower = def.tintPower ?? (this.state === 'liquid' ? 0.2 : 0.5);
     this.boilingPoint = def.boilingPoint ?? 100;
     this.hazard = def.hazard ?? null;
+    this.combustion = def.combustion ?? null;   // gases: 'fuel' | 'oxidizer' | 'smothers' (what a flame does in it)
   }
 
   get isSolid() { return this.state === 'solid'; }

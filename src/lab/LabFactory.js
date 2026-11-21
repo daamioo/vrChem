@@ -23,6 +23,7 @@ import { FireExtinguisher } from './FireExtinguisher.js';
 import { BouncyBall } from './BouncyBall.js';
 import { GasCylinderRack } from './GasCylinderRack.js';
 import { Cat } from './Cat.js';
+import { Lighter } from './Lighter.js';
 import { decorRegistry } from './Decor.js';
 
 /** Maps the `"class"` strings in config files to implementations. Add new equipment types here. */
@@ -30,7 +31,7 @@ export const equipmentRegistry = new Registry('equipment class')
   .register('Beaker', Beaker).register('Flask', Flask).register('TestTube', TestTube)
   .register('ReagentBottle', ReagentBottle).register('StirRod', StirRod).register('Thermometer', Thermometer)
   .register('Scale', Scale).register('HeatPlate', HeatPlate).register('WasteBin', WasteBin).register('ResetCrate', ResetCrate).register('FireExtinguisher', FireExtinguisher)
-  .register('Marker', Marker).register('Eraser', Eraser).register('BouncyBall', BouncyBall);
+  .register('Marker', Marker).register('Eraser', Eraser).register('BouncyBall', BouncyBall).register('Lighter', Lighter);
 
 decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat);
 export const furnitureRegistry = new Registry('furniture class').register('Table', Table);

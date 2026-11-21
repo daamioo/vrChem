@@ -31,6 +31,9 @@ export class AudioService {
       rubberSqueak: { gap: 0.07, fn: (v) => { const f = 700 + v * 600 + Math.random() * 120; this._tone(f, 0.09, 0.07 * v, 'square', f * 1.35); } },
       purr:       { gap: 0.8,  fn: (v) => { this._purrIn = !this._purrIn; this._purr(0.9, 0.22 * v, this._purrIn ? 23 : 27); } },
       meow:       { gap: 1.0,  fn: (v) => this._meow(0.16 * v) },
+      flick:      { gap: 0.1,  fn: (v) => { this._noise(0.05, 0.18 * v, 'highpass', 4000); this._tone(3200, 0.02, 0.05 * v, 'square'); } },
+      whoomp:     { gap: 0.4,  fn: (v) => { this._noise(0.6, 0.45 * v, 'lowpass', 350); this._tone(90, 0.5, 0.3 * v, 'sine', 45); } },
+      flame:      { gap: 0.2,  fn: (v) => { this._noise(0.3, 0.14 * v, 'lowpass', 420); this._noise(0.25, 0.04 * v, 'bandpass', 1600); } },
       boom:       { gap: 0.3,  fn: (v) => { this._noise(1.1, 0.7 * v, 'lowpass', 500); this._tone(55, 0.8, 0.6 * v, 'sine', 20); } },
     };
   }
