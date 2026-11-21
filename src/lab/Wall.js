@@ -45,17 +45,18 @@ export class Wall {
     this._box(L, 0.06, 0.012, ORANGE, 0, h - 0.5, 0.008);
   }
 
-  _addWindow({ u: [u0, u1], v: [v0, v1] }) {
+  _addWindow({ u: [u0, u1], v: [v0, v1], openable = false }) {
     const w = u1 - u0, h = v1 - v0, cu = (u0 + u1) / 2, cv = (v0 + v1) / 2, t = 0.06, depth = 0.18;
     const zc = -depth / 2 + 0.02;
     this._box(w + 2 * t, t, depth, DARK, cu, v1 + t / 2, zc);
     this._box(w + 2 * t, t, depth, DARK, cu, v0 - t / 2, zc);
     this._box(t, h, depth, DARK, u0 - t / 2, cv, zc);
     this._box(t, h, depth, DARK, u1 + t / 2, cv, zc);
-    const bars = Math.floor(w / 1.2);
+    const bars = openable ? 0 : Math.floor(w / 1.2);      // openable windows get hinged sashes instead (WindowCasement)
     for (let i = 1; i <= bars; i++) this._box(0.04, h, 0.05, DARK, u0 + (w * i) / (bars + 1), cv, -0.04);
     this._box(w + 0.1, 0.035, 0.14, new THREE.MeshStandardMaterial({ color: 0xf0f3f6, roughness: 0.3 }), cu, v0 + 0.0175, 0.07);   // sill
     this._box(w, 0.012, 0.012, ORANGE, cu, v0 + 0.04, 0.14);
+    if (openable) return;
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(w, h), GLASS);
     glass.position.set(cu, cv, -0.04);
     glass.renderOrder = 1;

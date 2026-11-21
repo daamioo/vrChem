@@ -76,7 +76,9 @@ function bands(geo, h, colors, n) {
  * container yard, a conveyor bridge carrying crates, trucks on the road and a freight train.
  * Everything is procedural (no assets). Local frame: origin at the base of the window wall,
  * +X points away from the building, Z runs along it. Nothing out here is raycast or physical.
- * def: { position, rotationY, groundY = -9 }
+ * Its background sound (hum, machinery, the odd horn or clank) comes from the window: faint with
+ * the window shut, much louder when it's open (world.env.outsideOpen).
+ * def: { position, rotationY, groundY = -9, ambienceAt = [x, y, z] local position of the window }
  */
 export class FactoryVista extends Entity {
   constructor(world, def) {
@@ -135,6 +137,7 @@ export class FactoryVista extends Entity {
   }
 
   onRemoved() {
+    if (this.amb) { try { this.amb.src.stop(); this.amb.lfo.stop(); } catch { /* not started */ } this.amb.out.disconnect(); }
     this.world.scene.fog = this._prevFog ?? null;
     const all = this.world.particles?.all;
     if (all) all.splice(all.indexOf(this.smoke), 1);
@@ -516,5 +519,77 @@ export class FactoryVista extends Entity {
       });
     }
     if (!this.world.particles) this.smoke.update(dt);
+    this._ambience(dt);
+  }
+
+  /** Industrial hum + machinery through the window, plus occasional distant horns and clanks. */
+  _ambience(dt) {
+    const audio = this.world.audio, ctx = audio?.ctx;
+    if (!ctx || !audio.master) return;
+    if (!this.amb) {
+      const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+      const rumble = ctx.createBiquadFilter(); rumble.type = 'lowpass'; rumble.frequency.value = 160;
+      const hiss = ctx.createBiquadFilter(); hiss.type = 'bandpass'; hiss.frequency.value = 1100; hiss.Q.value = 0.8;
+      const gR = ctx.createGain(); gR.gain.value = 1.2;
+      const gH = ctx.createGain(); gH.gain.value = 0.12;
+      const lfo = ctx.createOscillator(), lfoAmt = ctx.createGain();       // machines cycling, slowly
+      lfo.frequency.value = 0.18; lfoAmt.gain.value = 0.06; lfo.connect(lfoAmt).connect(gH.gain);
+      const out = ctx.createGain(); out.gain.value = 0;
+      const panner = ctx.createPanner();
+      Object.assign(panner, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 1.2, rolloffFactor: 0.8 });
+      src.connect(rumble).connect(gR).connect(out);
+      src.connect(hiss).connect(gH).connect(out);
+      out.connect(panner).connect(audio.master);
+      src.start(); lfo.start();
+      this.amb = { src, lfo, out, panner, next: 4 };
+      this.object3D.updateMatrixWorld(true);
+      const p = this.object3D.localToWorld(new THREE.Vector3(...(this.def.ambienceAt ?? [0, 1.7, -0.5])));
+      if (panner.positionX) { panner.positionX.value = p.x; panner.positionY.value = p.y; panner.positionZ.value = p.z; } else panner.setPosition(p.x, p.y, p.z);
+    }
+    const open = this.world.env?.outsideOpen ?? 0;
+    this.amb.out.gain.setTargetAtTime(0.025 + 0.5 * open, ctx.currentTime, 0.25);
+    this.amb.next -= dt;
+    if (this.amb.next <= 0) {
+      this.amb.next = 7 + Math.random() * 12;
+      const r = Math.random();
+      if (r < 0.35) this._horn(ctx); else if (r < 0.8) this._clank(ctx); else this._rumbleBy(ctx);
+    }
+  }
+
+  _env(ctx, gain, attack, hold, release) {
+    const g = ctx.createGain(), t = ctx.currentTime;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + attack);
+    g.gain.setValueAtTime(gain, t + attack + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + release);
+    g.connect(this.amb.out);
+    return { g, end: t + attack + hold + release };
+  }
+
+  /** Distant factory / train horn: two detuned low notes. */
+  _horn(ctx) {
+    const { g, end } = this._env(ctx, 0.12, 0.15, 1.1, 0.6);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650; lp.connect(g);
+    for (const f of [155, 196]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); o.stop(end); }
+  }
+
+  /** Metal clank from the crane / yard: a few short pings. */
+  _clank(ctx) {
+    for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+      const delay = i * (0.15 + Math.random() * 0.2), t = ctx.currentTime + delay;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.08, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      g.connect(this.amb.out);
+      for (const f of [700 + Math.random() * 300, 1900 + Math.random() * 600]) { const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + 0.55); }
+    }
+  }
+
+  /** A heavy truck / train rumbling past. */
+  _rumbleBy(ctx) {
+    const { g, end } = this._env(ctx, 0.5, 2.0, 1.0, 2.5);
+    const src = ctx.createBufferSource(); src.buffer = this.amb.src.buffer; src.loop = true;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
+    src.connect(lp).connect(g); src.start(); src.stop(end);
   }
 }

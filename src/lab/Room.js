@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
 import { Surface } from '../physics/Surface.js';
 import { Wall } from './Wall.js';
+import { WindowCasement } from './WindowCasement.js';
 
 /** Procedural canvas textures for the clean white-panel lab look. */
 class PanelTextures {
@@ -84,6 +85,7 @@ export class Room extends Entity {
     const { width: w, depth: d, height: h } = world.settings.room;
     this.dims = { w, d, h };
     const windows = world.config.lab.windows ?? {};
+    this.casements = [];
     const panel = 1.2;
 
     const floor = new THREE.Mesh(
@@ -109,11 +111,18 @@ export class Room extends Entity {
       ['right', d, [w / 2, 0, 0], -Math.PI / 2, false],
     ];
     for (const [name, length, pos, rot, flip] of walls) {
-      const local = (windows[name] ?? []).map(({ u: [a, b], v }) => ({ u: flip ? [-b, -a] : [a, b], v }));
+      const local = (windows[name] ?? []).map(({ u: [a, b], v, openable }) => ({ u: flip ? [-b, -a] : [a, b], v, openable }));
       const wall = new Wall({ length, height: h, material: wallMat, windows: local });
       wall.group.position.set(...pos);
       wall.group.rotation.y = rot;
       this.object3D.add(wall.group);
+      // openable windows: two sashes hinged at the outer edges, meeting in the middle
+      for (const { u: [u0, u1], v: [v0, v1], openable } of local) {
+        if (!openable) continue;
+        const half = (u1 - u0) / 2;
+        this.casements.push(new WindowCasement(world, wall.group, { hingeU: u0, side: 1, width: half, v0, v1 }));
+        this.casements.push(new WindowCasement(world, wall.group, { hingeU: u1, side: -1, width: half, v0, v1 }));
+      }
     }
 
     this._addCeilingLights(h);
@@ -146,5 +155,11 @@ export class Room extends Entity {
     const { w, d } = this.dims;
     this.floor = this.world.physics.addSurface(new Surface({ owner: this, shape: 'rect', x: 0, z: 0, top: 0, halfX: w / 2, halfZ: d / 2 }));
   }
-  onRemoved() { this.world.physics.removeSurface(this.floor); }
+  onRemoved() { this.world.physics.removeSurface(this.floor); for (const c of this.casements) c.dispose(); }
+
+  update(dt) {
+    let open = 0;
+    for (const c of this.casements) { c.update(dt); open = Math.max(open, c.open); }
+    this.world.env.outsideOpen = open;      // how much outside sound gets in (FactoryVista ambience)
+  }
 }
