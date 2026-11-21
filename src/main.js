@@ -37,7 +37,7 @@ async function main() {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b1016);
-  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.02, 50);
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.02, 600);   // far: the factory view outside the window
   const rig = new THREE.Group();
   const start = config.settings.player.start;
   rig.position.set(start[0], start[1], start[2]);

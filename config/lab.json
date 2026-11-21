@@ -512,6 +512,30 @@
    ],
    "furColor": "#e08a3c",
    "stripeColor": "#9a4f1c"
+  },
+  {
+   "class": "FactoryVista",
+   "position": [
+    2.5,
+    0,
+    0
+   ],
+   "rotationY": 0,
+   "groundY": -9
   }
- ]
+ ],
+ "windows": {
+  "right": [
+   {
+    "u": [
+     -1.7,
+     0.7
+    ],
+    "v": [
+     1.08,
+     2.36
+    ]
+   }
+  ]
+ }
 }

@@ -2,7 +2,8 @@ import * as THREE from 'three';
 
 const DARK = new THREE.MeshStandardMaterial({ color: 0x252a32, roughness: 0.5, metalness: 0.4 });
 const ORANGE = new THREE.MeshBasicMaterial({ color: 0xff7a1a });
-const GLASS = new THREE.MeshStandardMaterial({ color: 0x0c161d, roughness: 0.12, metalness: 0.85 });   // smoked glass
+// clear, faintly tinted glass so the view outside shows through
+const GLASS = new THREE.MeshStandardMaterial({ color: 0xbfd6e2, roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.1, depthWrite: false });
 
 /**
  * One wall in its own local frame: u runs along the wall (centred), v is height, +z faces into the room.
