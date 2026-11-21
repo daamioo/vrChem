@@ -36,6 +36,7 @@ import { PhChart } from '../ui/PhChart.js';
 import { Radio } from './Radio.js';
 import { ResetButton } from './ResetButton.js';
 import { WallClock } from './WallClock.js';
+import { LightSwitch } from './LightSwitch.js';
 import { decorRegistry } from './Decor.js';
 
 /** Maps the `"class"` strings in config files to implementations. Add new equipment types here. */
@@ -47,7 +48,7 @@ export const equipmentRegistry = new Registry('equipment class')
   .register('BunsenBurner', BunsenBurner).register('FlameTestLoop', FlameTestLoop).register('Splint', Splint)
   .register('PhStrip', PhStrip).register('PhStripBox', PhStripBox).register('Pipette', Pipette).register('Burette', Burette).register('Radio', Radio);
 
-decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista).register('ResetButton', ResetButton).register('WallClock', WallClock);
+decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista).register('ResetButton', ResetButton).register('WallClock', WallClock).register('LightSwitch', LightSwitch);
 export const furnitureRegistry = new Registry('furniture class').register('Table', Table);
 export const boardRegistry = new Registry('board class').register('NotebookBoard', NotebookBoard).register('HelpBoard', HelpBoard).register('Whiteboard', Whiteboard).register('PhChart', PhChart);
 

@@ -131,7 +131,7 @@ export class Room extends Entity {
   }
 
   _addCeilingLights(h) {
-    const mat = new THREE.MeshBasicMaterial({ color: 0xf4fbff });
+    const mat = this.panelMat = new THREE.MeshBasicMaterial({ color: 0xf4fbff });
     const frame = new THREE.MeshStandardMaterial({ color: 0x252a32, metalness: 0.5, roughness: 0.4 });
     for (const x of [-1.4, 0, 1.4]) for (const z of [-1.4, 0.2]) {
       const f = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.03, 0.5), frame);
@@ -153,11 +153,20 @@ export class Room extends Entity {
     this.object3D.add(this.key);
   }
 
-  /** Lights from the time of day; reports the indoor light level for the view outside. */
-  _updateLights() {
-    const dl = daylight(this.world.env.hours ?? 18);
-    this.sun.intensity = 0.6 + 0.9 * dl;
-    this.world.env.indoorLight = (this.hemi.intensity + 0.5 * this.sun.intensity) / (1.7 + 0.7);
+  /**
+   * Lights from the light switch (world.env.lightsOn, faded over ~0.2 s — no flicker) and the
+   * time of day (daylight through the window); reports the indoor light level for the view outside.
+   */
+  _updateLights(dt) {
+    const env = this.world.env, dl = daylight(env.hours ?? 18);
+    this._lit = this._lit ?? (env.lightsOn === false ? 0 : 1);
+    this._lit += ((env.lightsOn === false ? 0 : 1) - this._lit) * (1 - Math.exp(-12 * dt));
+    const on = this._lit;
+    this.hemi.intensity = 0.04 + 0.45 * dl + (1.7 - 0.04 - 0.45 * dl) * on;     // off: just daylight
+    this.key.intensity = 1.3 * on;
+    this.sun.intensity = (0.15 + 1.3 * dl) * (1 - on) + (0.6 + 0.9 * dl) * on;
+    this.panelMat.color.setRGB(0.19 + 0.77 * on, 0.21 + 0.77 * on, 0.24 + 0.76 * on);
+    env.indoorLight = (this.hemi.intensity + 0.5 * this.sun.intensity) / (1.7 + 0.7);
   }
 
   onAdded() {
@@ -170,6 +179,6 @@ export class Room extends Entity {
     let open = 0;
     for (const c of this.casements) { c.update(dt); open = Math.max(open, c.open); }
     this.world.env.outsideOpen = open;      // how much outside sound gets in (FactoryVista ambience)
-    this._updateLights();
+    this._updateLights(dt);
   }
 }

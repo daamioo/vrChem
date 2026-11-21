@@ -678,6 +678,15 @@
    "radius": 0.16,
    "startHours": 18,
    "minutesPerSecond": 1
+  },
+  {
+   "class": "LightSwitch",
+   "position": [
+    -1.46,
+    1.2,
+    2.19
+   ],
+   "rotationY": 180
   }
  ],
  "windows": {

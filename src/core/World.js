@@ -26,7 +26,7 @@ export class World {
     this.gasSources = new Set(); // gas jets a flame can act on: jetAt(point), ignite(cylinder)
     this.flames = new Set();     // anything burning: flameDistance(point) (Infinity when out), flameHeat (°C), optional tintFlame(color, k)
     this.factory = null;         // LabFactory, for spawning items at runtime
-    this.env = { outsideOpen: 0, hours: 18, indoorLight: 1 };   // shared environment: open windows, time of day (WallClock), indoor light level (Room)
+    this.env = { outsideOpen: 0, hours: 18, indoorLight: 1, lightsOn: true };   // shared environment: open windows, time of day (WallClock), indoor light level (Room), light switch
     this.controls = new Set();     // grabbable controls: Dial, Lever (anything with distanceToPoint/beginGrab/endGrab/update)
 
     // Services attached by the App (audio, particles, input, ...)
