@@ -5,6 +5,7 @@ import { RailYard } from './RailYard.js';
 import { skyColors, fogColor, outdoorLight, sunDirection, daylight, duskness } from '../core/DayCycle.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
+const UP_Y = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _v = new THREE.Vector3();
 
 /** Seeded random so the plant looks the same every load. */
@@ -76,7 +77,9 @@ function bands(geo, h, colors, n) {
  * is a train yard (RailYard: switch ladders, signals, catenary, shunting); beyond it factory
  * halls with lit windows and sawtooth roofs, smoking chimneys with blinking aircraft lights,
  * cooling towers venting steam, a flare stack, a tank farm, a gantry crane working a container
- * yard and a conveyor bridge carrying crates.
+ * yard and a conveyor bridge carrying crates. The lab's own building (facade with windows, the
+ * real window as an opening), neighbouring blocks and a skyline all round fill the view when
+ * you lean out of the open window.
  * Everything is procedural (no assets). Local frame: origin at the base of the window wall,
  * +X points away from the building, Z runs along it. Nothing out here is raycast or physical.
  * Its background sound (hum, machinery, the odd horn or clank) comes from the window: faint with
@@ -115,6 +118,7 @@ export class FactoryVista extends Entity {
     this.buildSky();
     this.buildGround();
     this.yard = new RailYard(this);
+    this.buildBuilding();
     this.buildHalls();
     this.buildContainerYard();
     this.buildConveyor();
@@ -215,8 +219,8 @@ export class FactoryVista extends Entity {
       g.fillStyle = '#5d6064'; g.fillRect(0, 0, w, h);
       for (let i = 0; i < 900; i++) { const v = 80 + Math.random() * 30; g.fillStyle = `rgba(${v},${v},${v + 4},0.35)`; g.fillRect(Math.random() * w, Math.random() * h, 3, 3); }
       g.strokeStyle = 'rgba(40,42,46,0.6)'; g.lineWidth = 2; g.strokeRect(0, 0, w, h);
-    }, { repeat: [80, 80] });
-    this.add(new THREE.PlaneGeometry(900, 900).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ map: tex }), 200, this.g, 0);
+    }, { repeat: [210, 210] });
+    this.add(new THREE.PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ map: tex }), 0, this.g, 0);
   }
 
   /** Hall facade: corrugated panels with rows of windows, some lit (emissive map). */
@@ -403,20 +407,79 @@ export class FactoryVista extends Entity {
   }
 
   buildSkyline() {
-    const n = 70, geo = new THREE.BoxGeometry(1, 1, 1);
+    const n = 130, geo = new THREE.BoxGeometry(1, 1, 1);
     const city = new THREE.InstancedMesh(geo, this.lam(0x3d3f4a), n);
     for (let i = 0; i < n; i++) {
-      const a = (this.rand() - 0.5) * 2.2, d = 240 + this.rand() * 90, h = 15 + this.rand() * 55, w = 10 + this.rand() * 18;
+      const a = (i / n) * Math.PI * 2 + this.rand() * 0.04, d = 235 + this.rand() * 85, h = 15 + this.rand() * 55, w = 10 + this.rand() * 18;
       _m.compose(_p.set(Math.cos(a) * d, this.g + h / 2, Math.sin(a) * d), _q.identity(), _v.set(w, h, w));
       city.setMatrixAt(i, _m);
     }
     this.object3D.add(city);
   }
 
+  /**
+   * The lab's own building seen from outside: a facade along the wall with the real window as an
+   * opening (matching the window frame), painted windows on every floor (some lit at night), the
+   * building's body behind it, a parapet, and office blocks either side. The room itself is
+   * inside the body; nothing here is visible from inside the room.
+   * def.window: { z: [z0, z1], y: [y0, y1] } opening incl. frame, in local coords.
+   */
+  buildBuilding() {
+    const g = this.g, top = 4.6, x0 = 0.02, x1 = 0.32, L = 40;
+    const [wz0, wz1] = this.def.window?.z ?? [-1.76, 0.76], [wy0, wy1] = this.def.window?.y ?? [1.02, 2.42];
+    const facade = this.lam(0xb9b4aa), body = this.lam(0xa9a397);
+    const slab = (xa, xb, ya, yb, za, zb, m = facade) => this.add(new THREE.BoxGeometry(xb - xa, yb - ya, zb - za), m, (xa + xb) / 2, (ya + yb) / 2, (za + zb) / 2);
+    slab(x0, x1, g, wy0, -L, L);                 // below the window
+    slab(x0, x1, wy1, top, -L, L);               // above
+    slab(x0, x1, wy0, wy1, -L, wz0);             // left of it
+    slab(x0, x1, wy0, wy1, wz1, L);              // right of it
+    slab(x0 - 0.1, x1 + 0.12, top, top + 0.5, -L, L, body);         // parapet / roof edge
+    // the rest of the building behind the facade (kept clear of the room: x -5.2..0, y 0..3, |z| < 2.4)
+    slab(-30, -5.2, g, top, -L, L, body);
+    slab(-5.2, x0, g, -0.02, -L, L, body);
+    slab(-5.2, x0, 3.02, top, -L, L, body);
+    slab(-5.2, x0, -0.02, 3.02, 2.4, L, body);
+    slab(-5.2, x0, -0.02, 3.02, -L, -2.4, body);
+    // painted windows on every floor (the lab floor skips its real window)
+    const dark = [], lit = [], q = new THREE.Quaternion().setFromAxisAngle(UP_Y, Math.PI / 2);
+    for (const y of [-7.3, -4.3, -1.3, 1.72]) for (let z = -38; z <= 38; z += 3.4) {
+      if (y > 0 && Math.abs(z - (wz0 + wz1) / 2) < 3.4) continue;
+      (this.rand() < 0.35 ? lit : dark).push(new THREE.Matrix4().compose(new THREE.Vector3(x1 + 0.005, y, z), q, new THREE.Vector3(2.1, 1.5, 1)));
+    }
+    const pane = new THREE.PlaneGeometry(1, 1);
+    this.litWinMat = new THREE.MeshBasicMaterial({ color: 0xffd890 });
+    for (const [list, mat] of [[dark, this.lam(0x2a333c)], [lit, this.litWinMat]]) {
+      const im = new THREE.InstancedMesh(pane, mat, list.length);
+      list.forEach((mm, i) => im.setMatrixAt(i, mm));
+      this.object3D.add(im);
+    }
+    // office blocks either side
+    for (const [za, zb, h, seed] of [[44, 78, 18, 5], [-82, -44, 24, 9]]) {
+      const { map, emissive } = this.officeTextures(seed);
+      map.repeat.set((zb - za) / 4, h / 3); emissive.repeat.copy(map.repeat);
+      const m = new THREE.MeshLambertMaterial({ map, emissiveMap: emissive, emissive: 0xffffff, emissiveIntensity: 0.9 });
+      (this.hallMats ??= []).push(m);
+      const side = this.lam(0x8e8a83);
+      this.add(new THREE.BoxGeometry(24, h, zb - za), [m, side, side, side, side, side], -11.7, g + h / 2, (za + zb) / 2);
+    }
+  }
+
+  /** One office window bay (tiled): grey panel + window, randomly lit (emissive map). */
+  officeTextures(seed) {
+    const r = rng(seed);
+    const on = r() < 0.4;
+    const map = canvasTex(64, 64, (c, w, h) => {
+      c.fillStyle = '#9a958c'; c.fillRect(0, 0, w, h);
+      c.fillStyle = on ? '#e8d49a' : '#28323b'; c.fillRect(8, 14, 48, 34);
+      c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(31, 14, 2, 34);
+    });
+    const emissive = canvasTex(64, 64, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); if (on) { c.fillStyle = '#ffcf73'; c.fillRect(8, 14, 48, 34); } });
+    return { map, emissive };
+  }
+
   /** Concrete ledge and facade strip right outside the window, so the drop below reads. */
   buildLedge() {
     this.add(new THREE.BoxGeometry(0.5, 0.12, 4.4), this.mat.concrete, 0.42, 0.98, 0);
-    this.add(new THREE.BoxGeometry(0.3, 0.6, 30), this.lam(0x7c8187), 0.3, this.g + 0.3, 0);
   }
 
   // ------------------------------------------------------------------ animation
@@ -507,6 +570,7 @@ export class FactoryVista extends Entity {
     lamp.m.color.copy(lamp.base).multiplyScalar(0.45 + 0.55 * night);
     glazing.m.color.copy(glazing.base).multiplyScalar(0.25 + 0.75 * Math.max(dl, dk * 0.8));
     if (this.signMat) this.signMat.color.setScalar(0.6 + 0.4 * night);
+    this.litWinMat?.color.setRGB(1, 0.85, 0.56).multiplyScalar(0.18 + 0.82 * night);
     this._smokeLight = 0.35 + 0.65 * out.level;
   }
 
