@@ -33,6 +33,7 @@ import { PhStripBox } from './PhStripBox.js';
 import { Pipette } from './Pipette.js';
 import { Burette } from './Burette.js';
 import { PhChart } from '../ui/PhChart.js';
+import { Radio } from './Radio.js';
 import { decorRegistry } from './Decor.js';
 
 /** Maps the `"class"` strings in config files to implementations. Add new equipment types here. */
@@ -42,7 +43,7 @@ export const equipmentRegistry = new Registry('equipment class')
   .register('Scale', Scale).register('HeatPlate', HeatPlate).register('WasteBin', WasteBin).register('ResetCrate', ResetCrate).register('FireExtinguisher', FireExtinguisher)
   .register('Marker', Marker).register('Eraser', Eraser).register('BouncyBall', BouncyBall).register('Lighter', Lighter)
   .register('BunsenBurner', BunsenBurner).register('FlameTestLoop', FlameTestLoop).register('Splint', Splint)
-  .register('PhStrip', PhStrip).register('PhStripBox', PhStripBox).register('Pipette', Pipette).register('Burette', Burette);
+  .register('PhStrip', PhStrip).register('PhStripBox', PhStripBox).register('Pipette', Pipette).register('Burette', Burette).register('Radio', Radio);
 
 decorRegistry.register('EyewashStation', EyewashStation).register('GasCylinderRack', GasCylinderRack).register('Cat', Cat).register('FactoryVista', FactoryVista);
 export const furnitureRegistry = new Registry('furniture class').register('Table', Table);

@@ -221,5 +221,12 @@
     "standHeight": 0.25,
     "maxFlowMlPerS": 6,
     "profile": [[0, 0], [0.0059, 0], [0.0059, 0.46], [0.02, 0.52]]
+  },
+  "radio": {
+    "class": "Radio",
+    "displayName": "Radio",
+    "file": "audio/radio.mp3",
+    "startVolume": 5,
+    "color": "#8a5a3c"
   }
 }

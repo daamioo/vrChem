@@ -589,6 +589,15 @@
    "chemical": "universal_indicator",
    "anchor": "right_front",
    "slot": 3
+  },
+  {
+   "equipment": "radio",
+   "position": [
+    -1.6,
+    0.925,
+    0.0
+   ],
+   "rotationY": 107
   }
  ],
  "decor": [
