@@ -20,10 +20,19 @@ export class Eraser extends LabObject {
     this._c = new THREE.Vector3(); this._ax = new THREE.Vector3();
   }
 
-  update() {
-    const board = this.world.whiteboard;
-    if (!board || !this.body.held) return;
+  update(dt) {
+    const hand = this.body.held;
+    if (!hand) return;
     this.object3D.updateMatrixWorld(true);
+    // wipe marker colour off anything that took ink (e.g. the cat)
+    const felt = this.worldPointAt(0, this._c);
+    for (const m of this.world.markables) {
+      if (!m.wipeTouch?.(felt, dt)) continue;
+      hand.pulse?.(0.1, 15);
+      this.world.audio?.play('scribble', 0.3);
+    }
+    const board = this.world.whiteboard;
+    if (!board) return;
     const loc = board.locate(this.worldPointAt(this.size.h / 2, this._c));
     if (!loc.inside || loc.z > 0.04 || loc.z < -0.03) return;
     const angle = board.boardAngle(this._ax.set(1, 0, 0).transformDirection(this.object3D.matrixWorld));

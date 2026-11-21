@@ -5,7 +5,16 @@ const _p = new THREE.Vector3();
 const _h = new THREE.Vector3();
 const _d = new THREE.Vector3();
 
-/** Per-vertex colours from a function of the vertex position (fur patterns without textures). */
+/** Fur pattern without textures: each vertex gets a kind (0 fur, 1 stripe, 2 belly) from its position. */
+function furKinds(geo, kindAt) {
+  const pos = geo.attributes.position, kinds = new Uint8Array(pos.count);
+  for (let i = 0; i < pos.count; i++) kinds[i] = kindAt(pos.getX(i), pos.getY(i), pos.getZ(i));
+  geo.userData.kinds = kinds;
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3));
+  return geo;
+}
+
+/** Per-vertex colours from a function of the vertex position. */
 function tint(geo, colorAt) {
   const pos = geo.attributes.position, cols = new Float32Array(pos.count * 3), c = new THREE.Color();
   for (let i = 0; i < pos.count; i++) {
@@ -27,7 +36,8 @@ const TAIL_N = 10, TAIL_LEN = 0.032, TAIL_CURL = -0.2;
  * over its back or head — no grip needed. Stroking builds contentment: it purrs (with a matching
  * controller rumble), squints, relaxes its tail and leans its head into your hand. Stroking
  * tail-to-head ruffles its fur and makes its ears flick. It watches nearby hands and meows
- * hello when you come over after a while away.
+ * hello when you come over after a while away. Rub a whiteboard marker on it to dye its fur the
+ * marker's colour; rub it with the board eraser to clean it back to its own colours.
  * def: { position, rotationY?, perchHeight?, furColor?, stripeColor?, bellyColor?, eyeColor?, cushionColor? }
  */
 export class Cat extends Entity {
@@ -74,8 +84,11 @@ export class Cat extends Entity {
     const fur = new THREE.Color(def.furColor ?? '#e08a3c');
     const stripe = new THREE.Color(def.stripeColor ?? '#9a4f1c');
     const belly = new THREE.Color(def.bellyColor ?? '#f6e3c4');
+    this.colors = { fur: fur.clone(), stripe: stripe.clone() };      // current (markers change these)
+    this.natural = { fur, stripe, belly };
+    this._furGeos = [];
     const furMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
-    const plainFur = new THREE.MeshStandardMaterial({ color: fur, roughness: 0.9 });
+    const plainFur = this._plainFur = new THREE.MeshStandardMaterial({ color: fur, roughness: 0.9 });
     const bellyMat = new THREE.MeshStandardMaterial({ color: belly, roughness: 0.9 });
     const pink = new THREE.MeshStandardMaterial({ color: 0xe89aa6, roughness: 0.7 });
 
@@ -85,12 +98,12 @@ export class Cat extends Entity {
 
     // --- body (loaf): tabby bands over the back, cream belly and chest
     const bodyGeo = new THREE.SphereGeometry(1, 36, 24).scale(BODY_R.x, BODY_R.y, BODY_R.z);
-    tint(bodyGeo, (x, y, z, c) => {
+    furKinds(bodyGeo, (x, y, z) => {
       const nx = x / BODY_R.x, ny = y / BODY_R.y, nz = z / BODY_R.z;
-      if (ny < -0.35 || (nz > 0.7 && ny < 0.35)) c.copy(belly);
-      else if (ny > -0.25 && Math.sin(nz * 15 + nx * nx * 4) > 0.45) c.copy(stripe);
-      else c.copy(fur);
+      if (ny < -0.35 || (nz > 0.7 && ny < 0.35)) return 2;
+      return ny > -0.25 && Math.sin(nz * 15 + nx * nx * 4) > 0.45 ? 1 : 0;
     });
+    this._furGeos.push(bodyGeo);
     this.body = new THREE.Mesh(bodyGeo, furMat);
     this.body.position.copy(BODY_C);
     cat.add(this.body);
@@ -111,12 +124,12 @@ export class Cat extends Entity {
     this.head.position.set(0, 0.035, 0.055);
     this.neck.add(this.head);
     const headGeo = new THREE.SphereGeometry(HEAD_R, 32, 24);
-    tint(headGeo, (x, y, z, c) => {
+    furKinds(headGeo, (x, y, z) => {
       const nx = x / HEAD_R, ny = y / HEAD_R, nz = z / HEAD_R;
-      if (nz > 0.5 && ny < -0.1) c.copy(belly);
-      else if (ny > 0.4 && nz > -0.2 && Math.sin(nx * 24) > 0.55) c.copy(stripe);
-      else c.copy(fur);
+      if (nz > 0.5 && ny < -0.1) return 2;
+      return ny > 0.4 && nz > -0.2 && Math.sin(nx * 24) > 0.55 ? 1 : 0;
     });
+    this._furGeos.push(headGeo);
     const skull = new THREE.Mesh(headGeo, furMat);
     skull.scale.set(1.05, 0.9, 0.95);
     this.head.add(skull);
@@ -164,22 +177,76 @@ export class Cat extends Entity {
 
     // --- tail: a chain of joints curling round the side; each joint rotates to swish
     this.tail = [];
+    this._tailMats = [];
     let parent = cat;
     for (let i = 0; i < TAIL_N; i++) {
       const j = new THREE.Group();
       if (i === 0) { j.position.set(0.035, 0.028, -0.195); j.rotation.y = Math.PI - 0.5; }
       else j.position.z = TAIL_LEN;
       const r = 0.017 - i * 0.0006;
-      const seg = new THREE.Mesh(new THREE.CapsuleGeometry(r, TAIL_LEN, 4, 10).rotateX(Math.PI / 2).translate(0, 0, TAIL_LEN / 2),
-        new THREE.MeshStandardMaterial({ color: i >= TAIL_N - 2 || i % 3 === 1 ? stripe : fur, roughness: 0.9 }));
+      const striped = i >= TAIL_N - 2 || i % 3 === 1;
+      const mat = new THREE.MeshStandardMaterial({ color: striped ? stripe : fur, roughness: 0.9 });
+      this._tailMats.push({ mat, striped });
+      const seg = new THREE.Mesh(new THREE.CapsuleGeometry(r, TAIL_LEN, 4, 10).rotateX(Math.PI / 2).translate(0, 0, TAIL_LEN / 2), mat);
       j.add(seg);
       parent.add(j);
       this.tail.push(j);
       parent = j;
     }
+    this._recolor();
   }
 
-  onRemoved() { this._prev.clear(); }
+  /** Writes the current fur / stripe colours into the vertex colours and plain-fur materials. */
+  _recolor() {
+    const { fur, stripe } = this.colors, belly = this.natural.belly, pal = [fur, stripe, belly];
+    for (const geo of this._furGeos) {
+      const kinds = geo.userData.kinds, col = geo.attributes.color;
+      for (let i = 0; i < kinds.length; i++) { const c = pal[kinds[i]]; col.setXYZ(i, c.r, c.g, c.b); }
+      col.needsUpdate = true;
+    }
+    this._plainFur.color.copy(fur);
+    for (const t of this._tailMats) t.mat.color.copy(t.striped ? stripe : fur);
+  }
+
+  /** Fades the coat toward `fur` / `stripe` (rate per second). */
+  _dye(fur, stripe, dt, rate) {
+    const k = 1 - Math.exp(-rate * dt);
+    this.colors.fur.lerp(fur, k);
+    this.colors.stripe.lerp(stripe, k);
+    this._recolor();
+  }
+
+  _touching(point, slack) {
+    const lp = this.cat.worldToLocal(_p.copy(point));
+    return this._surface(lp).d < slack;
+  }
+
+  /** A marker tip rubbing the fur: dyes the coat its ink colour (stripes a darker shade). */
+  markTouch(point, ink, dt) {
+    if (!this._touching(point, 0.015)) return false;
+    this._inkC ??= new THREE.Color(); this._inkS ??= new THREE.Color();
+    this._inkC.set(ink);
+    this._inkS.copy(this._inkC).multiplyScalar(0.5);
+    this._dye(this._inkC, this._inkS, dt, 2.5);
+    this._reactToRub();
+    return true;
+  }
+
+  /** The board eraser rubbing the fur: cleans the coat back to its natural colours. */
+  wipeTouch(point, dt) {
+    if (!this._touching(point, 0.03)) return false;
+    this._dye(this.natural.fur, this.natural.stripe, dt, 2.5);
+    this._reactToRub();
+    return true;
+  }
+
+  _reactToRub() {
+    if (this._twitchT >= 1 && Math.random() < 0.02) { this._twitchT = 0; this._twitchEar = Math.random() < 0.5 ? 0 : 1; }
+    if (this.world.time - this._lastMeow > 8) { this._lastMeow = this.world.time; this.world.audio?.play('meow', 0.45); }
+  }
+
+  onAdded() { this.world.markables.add(this); }
+  onRemoved() { this._prev.clear(); this.world.markables.delete(this); }
 
   /** Signed-ish distance from a cat-local point to the cat's fur, and which part is closest. */
   _surface(lp) {

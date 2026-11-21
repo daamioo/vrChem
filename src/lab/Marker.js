@@ -3,6 +3,7 @@ import { Probe } from './Probe.js';
 
 /**
  * Dry-erase marker. Hold it and touch the tip to the whiteboard to write in its ink colour
+ * (or rub it on anything in `world.markables`, like the cat, to colour it)
  * (`markerColor` in equipment.json). Origin = tip; lies flat when put down.
  */
 export class Marker extends Probe {
@@ -20,7 +21,7 @@ export class Marker extends Probe {
     add(new THREE.CylinderGeometry(radius * 1.05, radius * 1.05, 0.03, 14), col, length - 0.015);         // cap end
   }
 
-  onFrame() {
+  onFrame(dt) {
     const board = this.world.whiteboard;
     const hand = this.body.held;
     let drawing = false;
@@ -35,5 +36,14 @@ export class Marker extends Probe {
       }
     }
     if (!drawing) this._last = null;
+    // anything else that takes ink (e.g. the cat's fur)
+    if (hand && !drawing) {
+      for (const m of this.world.markables) {
+        if (!m.markTouch?.(this.tipWorld, this.ink, dt)) continue;
+        hand.pulse?.(0.1, 15);
+        this.world.audio?.play('scribble', 0.4);
+        break;
+      }
+    }
   }
 }
