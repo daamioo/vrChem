@@ -4,13 +4,14 @@ import { CanvasPanel } from './CanvasPanel.js';
 
 const LINES = [
   ['STEROWANIE VR', true],
-  ['Chwyt (boczny przycisk) lub ŚCISK (kciuk + wskazujący): chwyć', false],
+  ['Spust (lub boczny przycisk) albo ŚCISK (kciuk + wskaz.): chwyć', false],
+  ['Trzymasz spustem? Boczny przycisk = użyj (zapalniczka, gaśnica)', false],
   ['Dłonie: kciuk + środkowy = spust, kciuk + serdeczny = chód,', false],
   ['kciuk + mały = obrót (lewa / prawa dłoń)', false],
   ['Przechyl butelkę nad zlewką, aby nalać', false],
   ['Chwyć pokrętło i zakreśl dłonią okrąg, aby nim kręcić', false],
   ['Lewa gałka: chód   Prawa gałka: obrót', false],
-  ['Chwyć powietrze i pociągnij, by się przesunąć; obiema', false],
+  ['Boczny przycisk w powietrzu + pociągnij = przesuń się; obiema', false],
   ['dłońmi naraz: obróć je wokół siebie, by się obrócić', false],
   ['', false],
   ['WSKAZÓWKI', true],

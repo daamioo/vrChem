@@ -5,12 +5,13 @@ const PINCH_CLOSE = 0.024, PINCH_OPEN = 0.04;   // metres between fingertips (hy
 
 /**
  * One tracked hand slot (index 0/1). It adapts to whatever the headset reports:
- *  - Touch controllers: grip = grab, trigger = trigger, sticks = move / turn.
+ *  - Touch controllers: trigger = grab (grip works too), the other button = use the held item,
+ *    grip on empty air = move yourself, sticks = move / turn.
  *  - Bare-hand tracking: thumb+index pinch = grab, thumb+middle pinch = trigger,
  *    thumb+ring pinch = walk forward (where you look), thumb+little pinch = snap-turn
  *    (left hand turns left, right hand turns right).
  *    Curling the other fingers into a fist while holding = squeeze (e.g. the rubber ball).
- *  - Either way, grabbing empty air and pulling moves you (see XRLocomotion).
+ *  - Gripping (controller grip / index pinch) empty air and pulling moves you (see XRLocomotion).
  * Everything else sees only the abstract Hand fields.
  */
 export class XRHand extends Hand {
@@ -83,9 +84,19 @@ export class XRHand extends Hand {
     this._fwd.set(0, 0, -1).applyQuaternion(this.quaternion);
     this.touchPoint.copy(this.position).addScaledVector(this._fwd, 0.07);
     const b = this.gamepad?.buttons;
-    this.triggerPressed = !!b?.[0]?.pressed;
-    this.gripPressed = !!b?.[1]?.pressed;
-    this.squeeze = b?.[0]?.value ?? 0;                     // hold with grip, squeeze with the trigger
+    const trig = !!b?.[0]?.pressed, grip = !!b?.[1]?.pressed;
+    // Trigger (or grip) picks things up and holds them while it stays down; whichever button went
+    // down first is the grab button. Only the grip, on empty air, grabs the world to move you.
+    if (!this.gripPressed) {
+      this.grabWith = trig && !this._trig ? 'trigger' : grip && !this._grip ? 'grip' : null;
+      this.gripPressed = !!this.grabWith;
+    } else this.gripPressed = this.grabWith === 'trigger' ? trig : grip;
+    this._trig = trig; this._grip = grip;
+    this.canAirGrab = this.grabWith === 'grip';
+    // The other button uses what you hold (strike the lighter, spray, squeeze the ball / pipette).
+    const useGrip = this.grabWith === 'trigger';
+    this.triggerPressed = useGrip ? grip : trig;
+    this.squeeze = (useGrip ? b?.[1]?.value : b?.[0]?.value) ?? 0;
     this._pinch.ring = this._pinch.pinky = false;
   }
 
@@ -107,6 +118,7 @@ export class XRHand extends Hand {
     const wrist = this._joint('wrist'), midMeta = this._joint('middle-finger-metacarpal');
     const idxMeta = this._joint('index-finger-metacarpal'), pinkyMeta = this._joint('pinky-finger-metacarpal');
     if (!thumb || !index || !wrist) { this.gripPressed = this.triggerPressed = false; return; }   // tracking lost
+    this.canAirGrab = true; this.grabWith = null;
 
     const upd = (key, tip) => {
       if (!tip) { this._pinch[key] = false; return; }
