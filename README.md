@@ -14,7 +14,7 @@ Press **Enter VR**. On a PC the page works as a desktop test mode (right-drag lo
 left-click grab/press, wheel depth, Q/E tilt).
 
 ## Controls (Quest)
-Grip = grab (markers snap into a pen grip with the tip pointing where your hand points) · tilt to pour · grip a dial and circle your hand to turn it · left stick walk · right stick snap-turn.
+Grip = grab (markers snap into a pen grip, and the fire extinguisher into your hand by its handle, pointing where your hand points) · tilt to pour · grip a dial and circle your hand to turn it · left stick walk · right stick snap-turn.
 **Grab-the-world movement:** grip (or pinch, with bare hands) empty air and pull to drag yourself through the lab; with both hands, rotate them around each other to turn. The hand turns blue while you're moving (`player.grabMove` in `settings.json` switches it off).
 **Glass breaks:** glassware dropped from table height, thrown against a wall or slammed hard onto a table shatters into fragments and spills its contents; it reappears at its starting spot after `breakage.respawnS` seconds (`breakage.impactSpeed` sets the threshold; `"breakable": false` on an equipment entry opts out).
 **Rubber balls** (main bench, right end): throw them — they bounce off floor, tables and walls and roll off edges. Squeeze one while holding it: trigger on a controller, curl your fingers into a fist with bare hands, Space on desktop. It squashes and squeaks. A ball that hits glassware hard enough knocks it over (easier when it hits high up or the vessel is light/empty) and the contents pour out; a gentle hit makes it wobble and slide. You can also swat things with a held ball. Pick a tipped vessel up to stand it upright again (`knock.tipSpeed` in `settings.json` sets how hard a hit has to be).

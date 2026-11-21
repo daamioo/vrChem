@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import { LabObject } from './LabObject.js';
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _n = new THREE.Vector3();
+const _ry = new THREE.Matrix4(), _hold = new THREE.Matrix4();
 
 /**
  * Pick it up and hold the trigger to spray white foam where your hand points. Foam flies in an
  * arc, and sticks to whatever it hits as fading white blobs. The charge drains while spraying
  * and slowly refills when idle (see sprayDurationS / rechargePerS in equipment.json).
+ * Picked up, it snaps into your hand by its handle with the nozzle pointing where your hand
+ * points (the same direction the foam goes), the cylinder hanging below.
  */
 export class FireExtinguisher extends LabObject {
   build() {
@@ -31,6 +34,12 @@ export class FireExtinguisher extends LabObject {
     const label = add(new THREE.PlaneGeometry(0.09, 0.12), new THREE.MeshBasicMaterial({ color: 0xf4f4ee }), 0, 0.2, 0.0715);
     label.renderOrder = 2;
     this.nozzle = new THREE.Vector3(0.15, 0.46, 0);
+  }
+
+  /** Held by the handle: nozzle (local +X) along the hand's pointing direction (-Z), body below. */
+  holdOffset() {
+    _ry.makeRotationY(Math.PI / 2);                         // local +X -> hand -Z
+    return _hold.makeTranslation(0, -0.49, 0).multiply(_ry);  // handle (y ≈ 0.49) in the palm
   }
 
   get totalMassG() { return this.def.massG ?? 2500; }
