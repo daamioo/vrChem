@@ -83,7 +83,9 @@ export class InteractionSystem {
     obj.body.pinned = null;
     obj.body.velocity.set(0, 0, 0);
     obj._prevLowY = undefined; obj._pressed = false;
-    hand.grabOffset.copy(this._m.copy(hand.matrixWorld).invert()).multiply(obj.object3D.matrixWorld);
+    const hold = obj.holdOffset?.(hand);             // e.g. markers snap to a pen grip, tip forward
+    if (hold) hand.grabOffset.copy(hold);
+    else hand.grabOffset.copy(this._m.copy(hand.matrixWorld).invert()).multiply(obj.object3D.matrixWorld);
     hand.pulse(0.5, 40);
     this.world.audio?.play('tick', 0.6);
     hand.setHighlight(true);

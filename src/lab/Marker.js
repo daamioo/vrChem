@@ -1,12 +1,24 @@
 import * as THREE from 'three';
 import { Probe } from './Probe.js';
 
+const _rx = new THREE.Matrix4(), _t = new THREE.Matrix4(), _p = new THREE.Matrix4();
+
 /**
  * Dry-erase marker. Hold it and touch the tip to the whiteboard to write in its ink colour
  * (or rub it on anything in `world.markables`, like the cat, to colour it)
  * (`markerColor` in equipment.json). Origin = tip; lies flat when put down.
+ * Picked up, it snaps into a pen grip: the tip points where your hand points, `holdReach` metres
+ * ahead of the grip and tilted `holdPitchDeg` down — so it's easy to aim however it was lying.
  */
 export class Marker extends Probe {
+  holdOffset() {
+    const reach = this.def.holdReach ?? 0.08, pitch = THREE.MathUtils.degToRad(this.def.holdPitchDeg ?? 15);
+    // marker +Y (tip -> cap) along hand +Z (back toward the hand), tip moved forward, then tilted down
+    _rx.makeRotationX(Math.PI / 2);
+    _t.makeTranslation(0, 0, -reach);
+    return _p.makeRotationX(-pitch).multiply(_t).multiply(_rx);
+  }
+
   buildBody(length, radius) {
     const ink = this.def.markerColor ?? '#111111';
     this.ink = ink;

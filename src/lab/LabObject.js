@@ -81,6 +81,12 @@ export class LabObject extends Entity {
   /** Hit by a ball: `dv` is the velocity change the impulse would give this object (m/s). */
   onKnock(dv) { if (!this.body.support) this.body.velocity.add(dv); }
 
+  /**
+   * Optional fixed way of being held: a Matrix4 placing the object in the hand's frame (hand -Z =
+   * pointing direction). Return null (default) to keep the pose it had when picked up.
+   */
+  holdOffset(_hand) { return null; }
+
   onGrab(_hand) {}
   onRelease(_hand) {}
   onImpact(_speed, _surface) {}
