@@ -140,7 +140,6 @@ export class FactoryVista extends Entity {
       }
     });
     this.basics = [this.mat.lamp, this.mat.glazing].map((m) => ({ m, base: m.color.clone() }));
-    this._envKey = null;
     this.smoke = new ParticleSystem(world.scene, { capacity: 1300, gravity: -0.35, drag: 0.12 });
     this.smoke.points.material.fog = false;
   }
@@ -551,12 +550,9 @@ export class FactoryVista extends Entity {
     this._applyTimeOfDay();
   }
 
-  /** Sky, haze and outdoor brightness from world.env.hours (only recomputed when it changes). */
+  /** Sky, haze and outdoor brightness from world.env.hours — recomputed every frame, so it's continuous. */
   _applyTimeOfDay() {
     const env = this.world.env, h = env.hours ?? 18, indoor = env.indoorLight ?? 1;
-    const key = `${h.toFixed(3)}|${indoor.toFixed(3)}`;
-    if (key === this._envKey) return;
-    this._envKey = key;
     const sky = skyColors(h), dl = daylight(h), dk = duskness(h), out = outdoorLight(h);
     const U = this.skyU;
     U.zenith.value.setRGB(...sky.zenith); U.mid.value.setRGB(...sky.mid); U.horizon.value.setRGB(...sky.horizon);

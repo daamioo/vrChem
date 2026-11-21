@@ -27,9 +27,11 @@ class ClockFace extends CanvasPanel {
 /**
  * Wall clock that drives the time of day (world.env.hours): the sky and factory outside, and the
  * daylight coming in, follow it. It runs on its own (`minutesPerSecond` game minutes per real
- * second); grab the clock face and circle your hand clockwise to wind time forward (one turn =
- * one hour), anticlockwise to go back. A small display under it shows the time and day / night.
- * def: { position, rotationY, radius = 0.16, startHours = 18, minutesPerSecond = 1 }
+ * second); grab the clock face and circle your hand clockwise to wind time forward (one full
+ * turn = one whole day), anticlockwise to go back. The hands follow your hand at once; the world
+ * glides to the new time smoothly, no faster than `maxHoursPerSecond` (so spinning the clock can
+ * never make the room flash between day and night). A display under it shows the time.
+ * def: { position, rotationY, radius = 0.16, startHours = 18, minutesPerSecond = 1, maxHoursPerSecond = 6 }
  */
 export class WallClock extends Entity {
   constructor(world, def) {
@@ -38,7 +40,9 @@ export class WallClock extends Entity {
     this.persistent = true;                       // the room reset doesn't change the time
     this.r = def.radius ?? 0.16;
     this.rate = def.minutesPerSecond ?? 1;
-    world.env.hours = def.startHours ?? 18;
+    this.maxRate = def.maxHoursPerSecond ?? 6;
+    this.target = this.shown = def.startHours ?? 18;    // unwrapped hours: what the hands show / what the world shows
+    world.env.hours = this.shown;
     this.hand = null;
     this.object3D.position.set(...(def.position ?? [0, 1.8, 0]));
     this.object3D.rotation.y = THREE.MathUtils.degToRad(def.rotationY ?? 0);
@@ -92,14 +96,18 @@ export class WallClock extends Entity {
       if (d > Math.PI) d -= Math.PI * 2; else if (d < -Math.PI) d += Math.PI * 2;
       this._last = a;
       if (Math.abs(d) < 1) {                       // ignore tracking jumps
-        env.hours += (d / (Math.PI * 2));            // one full turn = one hour
+        this.target += (d / (Math.PI * 2)) * 24;    // one full turn = one whole day
         this._acc += d;
-        if (Math.abs(this._acc) > Math.PI / 6) { this._acc = 0; this.world.audio?.play('tick', 0.7); this.hand.pulse(0.3, 15); }
+        if (Math.abs(this._acc) > Math.PI / 12) { this._acc = 0; this.world.audio?.play('tick', 0.7); this.hand.pulse(0.3, 15); }  // a tick per hour
       }
-    } else env.hours += (this.rate / 60) * dt;
-    env.hours = ((env.hours % 24) + 24) % 24;
+    } else this.target += (this.rate / 60) * dt;
 
-    const h = env.hours;
+    // the world eases toward the target time, rate-limited -> always a smooth, gradual change
+    const gap = this.target - this.shown, maxStep = this.maxRate * dt;
+    this.shown = Math.abs(gap) < 1e-4 ? this.target : this.shown + THREE.MathUtils.clamp(gap * (1 - Math.exp(-6 * dt)), -maxStep, maxStep);
+    env.hours = ((this.shown % 24) + 24) % 24;
+
+    const h = ((this.target % 24) + 24) % 24;          // hands and display: the time you've set
     this.minuteHand.rotation.z = -((h % 1) * Math.PI * 2);
     this.hourHand.rotation.z = -(((h % 12) / 12) * Math.PI * 2);
     const dl = daylight(h);
