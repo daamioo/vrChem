@@ -26,15 +26,42 @@ export class HeadInsideFade {
       fragmentShader: /* glsl */`
         uniform float uAmount; uniform vec3 uOut;
         varying vec3 vDir;
+        // Everything is placed inside what a headset actually shows (~45 degrees from the centre).
+        // uOut is the way out in camera space (-z = straight ahead, +z = behind you).
         void main() {
           vec3 d = normalize(vDir);
-          float edge = 1.0 - smoothstep(0.45, 0.95, max(0.0, -d.z));      // towards the edge of the view
-          float toward = max(0.0, dot(d, uOut));                          // towards the way out
-          float g = clamp(edge * 0.7 + toward * toward, 0.0, 1.0);
-          float glowA = g * clamp(uAmount * 1.6, 0.0, 1.0) * 0.7;
-          float darkA = smoothstep(0.1, 0.9, uAmount);
-          vec3 col = mix(vec3(0.015, 0.01, 0.008), vec3(1.0, 0.42, 0.05), g * (1.0 - 0.45 * darkA));
-          gl_FragColor = vec4(col, max(glowA, darkA));
+          float ang = acos(clamp(-d.z, -1.0, 1.0));                  // 0 at the centre of the view
+          float sl = length(d.xy);
+          vec2 p2 = d.xy / max(sl, 1e-4);                            // direction on the screen
+          float side = length(uOut.xy);                              // how much the way out is to a side
+          vec2 o2 = uOut.xy / max(side, 1e-4);
+          float facing = dot(p2, o2);
+
+          // orange rim inside the visible field: bright on the side that leads out; when the way
+          // out is straight behind you, all the way round (= back up)
+          float rim = smoothstep(0.22, 0.62, ang);
+          float behind = smoothstep(0.1, 0.7, uOut.z) * (1.0 - smoothstep(0.2, 0.7, side));
+          float lead = pow(max(0.0, facing), 2.0) * smoothstep(0.1, 0.5, side);
+          float band = rim * clamp(0.22 + 1.2 * lead + 0.6 * behind, 0.0, 0.9);
+
+          // chevrons pointing to the side that leads out
+          float u = dot(d.xy, o2), v = dot(d.xy, vec2(-o2.y, o2.x));
+          float chev = 0.0;
+          if (u > 0.12 && u < 0.42 && abs(v) < 0.11) {
+            float k = fract((u + abs(v) * 0.9) * 9.0);       // tips point outwards
+            chev = smoothstep(0.0, 0.08, k) * (1.0 - smoothstep(0.38, 0.48, k)) * (1.0 - smoothstep(0.08, 0.11, abs(v)));
+          }
+          chev *= smoothstep(0.15, 0.45, side);
+
+          // way out in front of you: a glowing patch there
+          float ahead = pow(max(0.0, dot(d, uOut)), 6.0);
+
+          float show = clamp(uAmount * 2.5, 0.0, 1.0);
+          float glow = clamp(band + chev + ahead, 0.0, 1.0) * show;
+          float darkA = smoothstep(0.1, 0.85, uAmount);
+          vec3 col = mix(vec3(0.012, 0.008, 0.006), vec3(1.0, 0.5, 0.08), glow);
+          col = mix(col, vec3(1.0, 0.88, 0.6), chev * show);                 // pale chevrons stand out on the orange
+          gl_FragColor = vec4(col, max(darkA, glow));
         }`,
       transparent: true, depthTest: false, depthWrite: false, side: THREE.BackSide,
     });

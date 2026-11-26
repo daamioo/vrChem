@@ -363,6 +363,8 @@ export class Container extends LabObject {
     let endY;
     if (target) { target.acceptPour(taken, temp, this); endY = target.streamEndY(); }
     else {
+      // a free-falling stream: things under it may care (e.g. the cat)
+      this.world.bus.emit('pour:stream', { container: this, x: rim.x, y: rim.y, z: rim.z, map: taken, temperature: temp });
       const s = this.world.physics.surfaceAt(rim.x, rim.z, rim.y);
       endY = s ? s.top : 0;
       this._splash(rim.x, endY, rim.z, color, taken);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
+import { PawBadge } from './PawBadge.js';
 
 const _p = new THREE.Vector3();
 const _h = new THREE.Vector3();
@@ -30,6 +31,9 @@ const BODY_C = new THREE.Vector3(0, 0.085, -0.02);
 const BODY_R = new THREE.Vector3(0.105, 0.085, 0.19);
 const HEAD_R = 0.068;
 const TAIL_N = 10, TAIL_LEN = 0.032, TAIL_CURL = -0.2;
+// Pouring any of these on the cat (or anything at least SCALD_C hot) makes it vanish.
+const HARMFUL = new Set(['corrosive', 'toxic', 'reactive', 'oxidizer', 'flammable']);
+const SCALD_C = 60, HARM_GRAMS = 0.3, VANISH_S = 0.7;
 
 /**
  * A tabby cat loafing on a small cat-tree perch. Pet it by moving your hand (or desktop cursor)
@@ -38,6 +42,8 @@ const TAIL_N = 10, TAIL_LEN = 0.032, TAIL_CURL = -0.2;
  * tail-to-head ruffles its fur and makes its ears flick. It watches nearby hands and meows
  * hello when you come over after a while away. Rub a whiteboard marker on it to dye its fur the
  * marker's colour; rub it with the board eraser to clean it back to its own colours.
+ * Pour something harmful (corrosive, toxic, reactive, oxidizing, flammable or scalding hot) on it
+ * and it vanishes in a puff, leaving a paw-print badge (PawBadge) until the room reset.
  * def: { position, rotationY?, perchHeight?, furColor?, stripeColor?, bellyColor?, eyeColor?, cushionColor? }
  */
 export class Cat extends Entity {
@@ -245,8 +251,55 @@ export class Cat extends Entity {
     if (this.world.time - this._lastMeow > 8) { this._lastMeow = this.world.time; this.world.audio?.play('meow', 0.45); }
   }
 
-  onAdded() { this.world.markables.add(this); }
-  onRemoved() { this._prev.clear(); this.world.markables.delete(this); }
+  onAdded() {
+    this.world.markables.add(this);
+    this._unsubPour = this.world.bus.on('pour:stream', (e) => this._onPour(e));
+  }
+  onRemoved() { this._prev.clear(); this.world.markables.delete(this); this._unsubPour?.(); }
+
+  /** A stream poured from above: harmful stuff landing on the cat adds up until it vanishes. */
+  _onPour({ x, y, z, map, temperature }) {
+    if (this.gone) return;
+    this.object3D.updateMatrixWorld(true);
+    const lp = this.cat.worldToLocal(_p.set(x, y, z));
+    if (lp.y < 0 || lp.y > 2) return;
+    const bx = lp.x / (BODY_R.x + 0.03), bz = (lp.z - BODY_C.z) / (BODY_R.z + 0.03);
+    this.head.getWorldPosition(_h); this.cat.worldToLocal(_h);
+    const overHead = Math.hypot(lp.x - _h.x, lp.z - _h.z) < HEAD_R + 0.03;
+    if (bx * bx + bz * bz > 1 && !overHead) return;
+    let harm = 0, total = 0;
+    for (const [id, g] of map) {
+      total += g;
+      if (HARMFUL.has(this.world.chemicals.get(id)?.hazard)) harm += g;
+    }
+    if (temperature >= SCALD_C) harm = total;
+    this._harm = (this._harm ?? 0) + harm;
+    if (this._harm >= HARM_GRAMS) this._vanish();
+  }
+
+  _vanish() {
+    this.gone = true;
+    this._goneT = 0;
+    this.world.markables.delete(this);
+    this.world.audio?.play('meow', 0.8);
+    this.cat.getWorldPosition(_p);
+    _p.y += 0.08;
+    this.world.particles?.puffs.emitBurst(_p, 40, { color: [0.85, 0.85, 0.82, 0.45], speed: 0.25, size: 0.05, life: 1.6, up: 0.15, spread: 0.1, growth: 0.04 });
+  }
+
+  /** Shrinks away smoothly, then the badge grows in where it sat. */
+  _updateGone(dt) {
+    if (this._goneT >= VANISH_S) return;
+    this._goneT += dt;
+    const k = Math.min(1, this._goneT / VANISH_S);
+    this.cat.scale.setScalar(Math.max(0.001, 1 - k * k * (3 - 2 * k)));
+    if (k < 1) return;
+    this.cat.visible = false;
+    this.object3D.getWorldPosition(_p);
+    _p.y += this.perchTop + 0.32;
+    const cam = this.world.camera.getWorldPosition(_h);
+    this.world.add(new PawBadge(this.world, { position: _p, yaw: Math.atan2(cam.x - _p.x, cam.z - _p.z) }));
+  }
 
   /** Signed-ish distance from a cat-local point to the cat's fur, and which part is closest. */
   _surface(lp) {
@@ -258,6 +311,7 @@ export class Cat extends Entity {
   }
 
   update(dt) {
+    if (this.gone) return this._updateGone(dt);
     const w = this.world, t = w.time;
     this.object3D.updateMatrixWorld(true);
 
