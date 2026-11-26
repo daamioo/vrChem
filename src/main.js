@@ -9,6 +9,7 @@ import { ConfigValidator } from './chemistry/ConfigValidator.js';
 import { AudioService } from './audio/AudioService.js';
 import { ParticleHub } from './effects/ParticleSystem.js';
 import { FoamSplats } from './effects/FoamSplats.js';
+import { HeadInsideFade } from './effects/HeadInsideFade.js';
 import { InteractionSystem } from './input/InteractionSystem.js';
 import { XRHand } from './input/XRHand.js';
 import { DesktopHand } from './input/DesktopHand.js';
@@ -66,6 +67,7 @@ async function main() {
     return new XRHand(i === 0 ? 'left' : 'right', ctrl, handGroup, scene);
   });
   const locomotion = new XRLocomotion(world, rig, xrHands);
+  const headFade = new HeadInsideFade(world, camera);   // head in a wall / bench: dark view, orange edge
   world.input.hands = [desktopHand];
 
   renderer.xr.addEventListener('sessionstart', () => {
@@ -110,11 +112,12 @@ async function main() {
     if (renderer.xr.isPresenting) world.particles.setScale(900);
     rig.updateMatrixWorld(true);                   // hands read their pose through the rig this frame
     world.update(dt);
+    headFade.update(dt);
     renderer.render(scene, camera);
   });
 
   say('');
-  window.chemlab = { world, factory, THREE };   // handy for console debugging
+  window.chemlab = { world, factory, headFade, THREE };   // handy for console debugging
 }
 
 main().catch((e) => { console.error(e); say(`Nie udało się uruchomić: ${e.message}`, true); });
