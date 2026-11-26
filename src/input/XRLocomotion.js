@@ -20,9 +20,9 @@ export class XRLocomotion {
     this._d = new THREE.Vector3(); this._m = new THREE.Vector3(); this._pivot = new THREE.Vector3();
   }
 
-  /** Hand position in rig (tracking-space) coordinates, which do not change when the rig moves. */
+  /** Tracked hand position (not the one walls stopped) in rig coordinates, which do not change when the rig moves. */
   _local(hand, target) {
-    return target.copy(hand.position).sub(this.rig.position).applyQuaternion(this._invQ);
+    return target.copy(hand.realPosition).sub(this.rig.position).applyQuaternion(this._invQ);
   }
 
   _grabMove() {

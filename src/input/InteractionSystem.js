@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 
+const PALM_R = 0.035, TIP_R = 0.01;     // how close the palm / fingertip get to a wall
+const MAX_LAG = 0.35;                    // a hand this far behind its real position is put back
+
 /**
  * Grabbing and releasing. Works on abstract Hands: when grip closes, picks the nearest
  * grabbable within reach and rigidly attaches it; on release, hands over the hand's velocity.
@@ -10,6 +13,8 @@ export class InteractionSystem {
     this.hands = [];
     this._m = new THREE.Matrix4();
     this._s = new THREE.Vector3();
+    this._v = new THREE.Vector3(); this._t = new THREE.Vector3(); this._d = new THREE.Vector3();
+    this._box = new THREE.Box3(); this._bb = new THREE.Box3();
   }
 
   addHand(hand) { this.hands.push(hand); return hand; }
@@ -17,6 +22,7 @@ export class InteractionSystem {
   update(dt) {
     for (const hand of this.hands) {
       hand.update(dt);
+      this._blockAtWalls(hand);
       hand.trackVelocity(dt);
 
       const gripDown = hand.gripPressed && !hand._wasGrip;
@@ -32,7 +38,67 @@ export class InteractionSystem {
         hand.nearest = this.findNearest(hand) ?? this.findNearestControl(hand);
         hand.setHighlight(!!hand.nearest);
       }
+      hand._wallPos ??= new THREE.Vector3(); hand._wallTip ??= new THREE.Vector3();
+      hand._wallPos.copy(hand.position); hand._wallTip.copy(hand.touchPoint);
+      hand.syncVisual(dt);
     }
+  }
+
+  /**
+   * Walls are solid: the hand (palm and fingertip) is swept from where it was last frame towards
+   * its tracked pose and stops at a wall, unless it goes through an open window. The visible hand
+   * stays there; the hand shows a ghost at the real position. If the two drift far apart (e.g. the
+   * window was shut with your hand outside), the hand comes back to the nearest point inside.
+   */
+  _blockAtWalls(hand) {
+    hand.realPosition.copy(hand.position);
+    hand.offset.set(0, 0, 0);
+    const rb = this.world.roomBounds;
+    if (!rb) return;
+    const fresh = !hand._wallPos;
+    const palm = fresh ? rb.clampInside(hand.position, PALM_R, this._v) : rb.constrain(hand._wallPos, hand.position, PALM_R, this._v);
+    const d = this._d.copy(palm).sub(hand.position);
+    const tip = this._t.copy(hand.touchPoint).add(d);
+    const tipC = fresh ? rb.clampInside(tip, TIP_R, this._s) : rb.constrain(hand._wallTip, tip, TIP_R, this._s);
+    d.add(tipC.sub(tip));
+    if (d.length() > MAX_LAG) d.copy(rb.clampInside(hand.position, PALM_R, this._v)).sub(hand.position);
+    hand.shift(d);
+  }
+
+  /** Box around a held object's visible meshes, in its own space (kept for as long as it is held). */
+  _localBounds(obj, out) {
+    out.makeEmpty();
+    obj.object3D.updateMatrixWorld(true);
+    this._m.copy(obj.object3D.matrixWorld).invert();
+    obj.object3D.traverseVisible((o) => {
+      if (!o.isMesh || o.isInstancedMesh || !o.geometry) return;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      out.union(this._bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld).applyMatrix4(this._m));
+    });
+    return out;
+  }
+
+  /**
+   * A held object stops at the walls too; the hand stays on it (its ghost shows where it really is).
+   * Hitting a wall hard with it counts as an impact, like on a bench top (glass can break).
+   */
+  _keepOutOfWalls(hand, obj, dt) {
+    const rb = this.world.roomBounds;
+    if (!rb || !hand._heldBox || hand._heldBox.isEmpty()) return;
+    this._box.copy(hand._heldBox).applyMatrix4(obj.object3D.matrixWorld);
+    const shift = rb.pushBox(this._box, hand.position, this._d);
+    const hit = shift.lengthSq() > 1e-10;
+    if (hit) {
+      obj.object3D.position.add(shift);
+      obj.object3D.updateMatrixWorld(true);
+      hand.shift(shift);
+      if (!obj._wallPressed) {
+        const speed = shift.length() / Math.max(dt, 1e-3);
+        if (speed > 0.5) obj.onImpact?.(speed, null);
+        hand.pulse(Math.min(1, 0.3 + speed * 0.3), 30);
+      }
+    }
+    obj._wallPressed = hit;
   }
 
   findNearest(hand) {
@@ -82,12 +148,13 @@ export class InteractionSystem {
     obj.body.support = null;
     obj.body.pinned = null;
     obj.body.velocity.set(0, 0, 0);
-    obj._prevLowY = undefined; obj._pressed = false;
+    obj._prevLowY = undefined; obj._pressed = false; obj._wallPressed = true;   // no impact for grabbing it off a wall
     const hold = obj.holdOffset?.(hand);             // e.g. markers snap to a pen grip, tip forward
     if (hold) hand.grabOffset.copy(hold);
     else hand.grabOffset.copy(this._m.copy(hand.matrixWorld).invert()).multiply(obj.object3D.matrixWorld);
     hand.pulse(0.5, 40);
     this.world.audio?.play('tick', 0.6);
+    hand._heldBox = this._localBounds(obj, hand._heldBox ?? new THREE.Box3());
     hand.setHighlight(true);
     obj.onGrab(hand);
     this.world.bus.emit('grab', { hand, object: obj });
@@ -110,6 +177,7 @@ export class InteractionSystem {
     this._m.multiplyMatrices(hand.matrixWorld, hand.grabOffset);
     this._m.decompose(obj.object3D.position, obj.object3D.quaternion, this._s);
     obj.object3D.updateMatrixWorld(true);
+    this._keepOutOfWalls(hand, obj, dt);
     this._keepOutOfSolids(hand, obj, dt);
   }
 

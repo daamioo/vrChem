@@ -25,6 +25,10 @@ export class Hand {
     this.airGrab = false;                       // gripping empty air (grab-the-world locomotion)
     this.canAirGrab = false;                    // set by hands that support it (XR)
     this.nearest = null;                        // grabbable currently in reach (for highlighting)
+    // Walls stop the hand: `position` / `touchPoint` / `matrixWorld` are where the hand is allowed
+    // to be; `realPosition` is the tracked one, and `offset` = position - realPosition.
+    this.realPosition = new THREE.Vector3();
+    this.offset = new THREE.Vector3();
   }
 
   /** Refresh pose and button state. */
@@ -33,6 +37,19 @@ export class Hand {
   pulse(_intensity, _ms) {}
   /** Visual feedback hook (e.g. tint when something is in reach). */
   setHighlight(_on) {}
+  /** Places the hand's visuals after walls have been applied (and shows a ghost where it really is). */
+  syncVisual(_dt) {}
+  /** Hides the visuals (when this hand stops being used). */
+  hideVisuals() {}
+
+  /** Moves the hand (pose, fingertip) by `d`, keeping the tracked `realPosition`. */
+  shift(d) {
+    this.position.add(d);
+    this.touchPoint.add(d);
+    const e = this.matrixWorld.elements;
+    e[12] += d.x; e[13] += d.y; e[14] += d.z;
+    this.offset.add(d);
+  }
 
   /** Smoothed hand velocity, used for throwing. Call after pose update. */
   trackVelocity(dt) {

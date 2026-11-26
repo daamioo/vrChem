@@ -63,7 +63,7 @@ async function main() {
     const ctrl = renderer.xr.getController(i);
     const handGroup = renderer.xr.getHand(i);       // joint poses when the headset tracks bare hands
     rig.add(ctrl, handGroup);
-    return new XRHand(i === 0 ? 'left' : 'right', ctrl, handGroup);
+    return new XRHand(i === 0 ? 'left' : 'right', ctrl, handGroup, scene);
   });
   const locomotion = new XRLocomotion(world, rig, xrHands);
   world.input.hands = [desktopHand];
@@ -77,6 +77,7 @@ async function main() {
   });
   renderer.xr.addEventListener('sessionend', () => {
     desktopHand.marker.visible = true;
+    for (const h of xrHands) h.hideVisuals();
     world.input.hands = [desktopHand];
     camera.position.y = 1.6;
   });

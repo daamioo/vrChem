@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Entity } from '../core/Entity.js';
 import { Surface } from '../physics/Surface.js';
+import { RoomBounds } from '../physics/RoomBounds.js';
 import { Wall } from './Wall.js';
 import { WindowCasement } from './WindowCasement.js';
 import { daylight } from '../core/DayCycle.js';
@@ -87,6 +88,7 @@ export class Room extends Entity {
     this.dims = { w, d, h };
     const windows = world.config.lab.windows ?? {};
     this.casements = [];
+    const openings = [];             // openable windows: where hands / held things may pass the wall
     const panel = 1.2;
 
     const floor = new THREE.Mesh(
@@ -118,14 +120,20 @@ export class Room extends Entity {
       wall.group.rotation.y = rot;
       this.object3D.add(wall.group);
       // openable windows: two sashes hinged at the outer edges, meeting in the middle
-      for (const { u: [u0, u1], v: [v0, v1], openable } of local) {
+      for (const [i, { u: [u0, u1], v: [v0, v1], openable }] of local.entries()) {
         if (!openable) continue;
         const half = (u1 - u0) / 2;
-        this.casements.push(new WindowCasement(world, wall.group, { hingeU: u0, side: 1, width: half, v0, v1 }));
-        this.casements.push(new WindowCasement(world, wall.group, { hingeU: u1, side: -1, width: half, v0, v1 }));
+        const sashes = [
+          new WindowCasement(world, wall.group, { hingeU: u0, side: 1, width: half, v0, v1 }),
+          new WindowCasement(world, wall.group, { hingeU: u1, side: -1, width: half, v0, v1 }),
+        ];
+        this.casements.push(...sashes);
+        const [a0, a1] = windows[name][i].u;                 // world coordinates along the wall
+        openings.push({ wall: name, a0, a1, v0, v1, isOpen: () => sashes.some((c) => c.open > 0.3) });
       }
     }
 
+    this.bounds = new RoomBounds({ width: w, depth: d, height: h }, openings);
     this._addCeilingLights(h);
     this._addLights(h);
   }
@@ -172,8 +180,13 @@ export class Room extends Entity {
   onAdded() {
     const { w, d } = this.dims;
     this.floor = this.world.physics.addSurface(new Surface({ owner: this, shape: 'rect', x: 0, z: 0, top: 0, halfX: w / 2, halfZ: d / 2 }));
+    this.world.roomBounds = this.bounds;          // InteractionSystem keeps hands and held things inside
   }
-  onRemoved() { this.world.physics.removeSurface(this.floor); for (const c of this.casements) c.dispose(); }
+  onRemoved() {
+    this.world.physics.removeSurface(this.floor);
+    for (const c of this.casements) c.dispose();
+    if (this.world.roomBounds === this.bounds) this.world.roomBounds = null;
+  }
 
   update(dt) {
     let open = 0;

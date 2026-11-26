@@ -64,8 +64,9 @@ export class DesktopHand extends Hand {
     this.matrixWorld.compose(this.position, this.quaternion, this._s);
     this.touchPoint.copy(this.position);
     this.touching = this.gripPressed && !this.held;
-    this.marker.position.copy(this.position);
   }
+
+  syncVisual() { this.marker.position.copy(this.position); }
 
   setHighlight(on) { this.marker.material.color.set(on ? 0x7dffb0 : 0xffd7b5); }
 }
