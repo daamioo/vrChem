@@ -226,7 +226,7 @@
     "class": "Radio",
     "displayName": "Radio",
     "startFreq": 92.5,
-    "startVolume": 5,
+    "startVolume": 0,
     "color": "#8a5a3c",
     "stations": [
       { "freq": 92.5, "name": "Chemia FM", "file": "audio/radio.mp3" },

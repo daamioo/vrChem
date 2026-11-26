@@ -5,14 +5,16 @@ const MAX_ANGLE = Math.PI * 0.75;
 
 /**
  * A physical rotary knob on an upward-facing surface. Grip it (like any object) and move your
- * hand in a circle around it to turn; it clicks between `steps` detents. Owned by a station,
- * which calls update() and dispose().
+ * hand in a circle around it to turn; it clicks between `steps` detents. With `snap: true` the
+ * knob jumps from detent to detent while you turn (a chunky selector switch) instead of following
+ * the hand smoothly. Owned by a station, which calls update() and dispose().
  */
 export class Dial {
-  constructor(world, { radius = 0.024, steps = 11, startStep = 0, color = '#dc2626', onChange }) {
+  constructor(world, { radius = 0.024, steps = 11, startStep = 0, color = '#dc2626', snap = false, onChange }) {
     this.world = world;
     this.radius = radius;
     this.steps = steps;
+    this.snap = snap;
     this.step = startStep;
     this.onChange = onChange;
     this.hand = null;
@@ -41,7 +43,7 @@ export class Dial {
 
   dispose() { this.world.controls.delete(this); }
 
-  angleForStep(i) { return MIN_ANGLE + (i / (this.steps - 1)) * (MAX_ANGLE - MIN_ANGLE); }
+  angleForStep(i) { return this.steps < 2 ? 0 : MIN_ANGLE + (i / (this.steps - 1)) * (MAX_ANGLE - MIN_ANGLE); }
 
   get center() { return this.object3D.getWorldPosition(this._c); }
 
@@ -68,8 +70,6 @@ export class Dial {
     if (d > Math.PI) d -= 2 * Math.PI; else if (d < -Math.PI) d += 2 * Math.PI;
     this._last = a;
     this.angle = THREE.MathUtils.clamp(this.angle + d, MIN_ANGLE, MAX_ANGLE);
-    this.knob.rotation.y = this.angle;
-
     const step = Math.round(((this.angle - MIN_ANGLE) / (MAX_ANGLE - MIN_ANGLE)) * (this.steps - 1));
     if (step !== this.step) {
       this.step = step;
@@ -77,5 +77,6 @@ export class Dial {
       this.world.audio?.play('tick', 0.8);
       this.onChange?.(step);
     }
+    this.knob.rotation.y = this.snap ? this.angleForStep(this.step) : this.angle;
   }
 }

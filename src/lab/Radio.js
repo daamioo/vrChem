@@ -5,7 +5,6 @@ import { DisplayPanel, CanvasPanel } from '../ui/CanvasPanel.js';
 import { renderLoungeLoop } from '../audio/LoungeLoop.js';
 
 const _p = new THREE.Vector3(), _f = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Quaternion();
-const F_MIN = 88, F_MAX = 108, F_STEP = 0.5;
 const BANDWIDTH = 0.9;                 // MHz either side of a station where you can still hear it
 
 class KnobLabels extends CanvasPanel {
@@ -20,14 +19,14 @@ class KnobLabels extends CanvasPanel {
 
 /**
  * A retro bench radio. Two knobs on top:
- *  - left: volume (fully left = off, with a click);
- *  - right: tuning, 88–108 MHz in 0.5 MHz clicks. Between stations you hear static; as you
- *    tune in, the static fades and the station comes through (the lamp glows with signal).
+ *  - left: volume (fully left = off, with a click). The radio starts switched off;
+ *  - right: station selector, a snapping switch with one position per station (no free tuning).
+ *    You hear static only while a station is still loading or its file is missing.
  * Every station plays on a seamless loop, forever, and keeps running while you're tuned away.
  * A station is either a local audio file (`file`, e.g. "audio/radio.mp3") or generated music
  * (`generator: "lounge"`, original, made in code). Missing files are just static.
  * Sound comes from the radio (3D positional). It survives the room reset.
- * def: { stations: [{ freq, name, file | generator }], startFreq, startVolume (0..10), color }
+ * def: { stations: [{ freq, name, file | generator }], startFreq, startVolume (0..10, default 0 = off), color }
  */
 export class Radio extends Entity {
   constructor(world, def) {
@@ -36,8 +35,12 @@ export class Radio extends Entity {
     this.persistent = true;                       // the room reset leaves it (and the music) alone
     const list = def.stations ?? [{ freq: 92.5, name: 'Radio', file: def.file ?? 'audio/radio.mp3' }];
     this.stations = list.map((s) => ({ ...s, state: 'idle', buffer: null, source: null, gain: null }));
-    this.volume = def.startVolume ?? 5;           // 0 = off
-    this.freq = def.startFreq ?? this.stations[0]?.freq ?? 92.5;
+    this.volume = def.startVolume ?? 0;           // 0 = off (the default: silent on load)
+    // start on the station nearest startFreq
+    const want = def.startFreq ?? this.stations[0]?.freq ?? 92.5;
+    this.stationIdx = 0;
+    this.stations.forEach((s, i) => { if (Math.abs(s.freq - want) < Math.abs(this.stations[this.stationIdx].freq - want)) this.stationIdx = i; });
+    this.freq = this.stations[this.stationIdx]?.freq ?? want;
     this.started = false;
     this.signal = 0;
 
@@ -68,10 +71,9 @@ export class Radio extends Entity {
       onChange: (k) => { const was = this.volume; this.volume = k; if ((was === 0) !== (k === 0)) world.audio?.play('tick', 1); this._mix(); },
     });
     this.volKnob.object3D.position.set(-0.06, 0.16, 0.0);
-    const tuneSteps = Math.round((F_MAX - F_MIN) / F_STEP) + 1;
     this.tuneKnob = new Dial(world, {
-      steps: tuneSteps, startStep: Math.round((this.freq - F_MIN) / F_STEP), color: '#c9a66b', radius: 0.018,
-      onChange: (k) => { this.freq = F_MIN + k * F_STEP; this._mix(); },
+      steps: this.stations.length, startStep: this.stationIdx, snap: true, color: '#c9a66b', radius: 0.018,
+      onChange: (k) => { this.stationIdx = k; this.freq = this.stations[k].freq; this._mix(); },
     });
     this.tuneKnob.object3D.position.set(0.07, 0.16, 0.0);
     this.object3D.add(this.volKnob.object3D, this.tuneKnob.object3D);
